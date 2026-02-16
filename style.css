@@ -1,0 +1,580 @@
+/* ===== ОБЩИЕ СТИЛИ И СБРОС ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #1e293b;
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== ШАПКА ===== */
+.header {
+    background: linear-gradient(135deg, #2c3e50 0%, #1e2a36 100%);
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ===== ПАНЕЛЬ ФИЛЬТРОВ ===== */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 30px auto;
+    max-width: 1200px;
+    padding: 0 20px;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.filter-btn.active {
+    background-color: #e67e22;
+    box-shadow: 0 0 0 2px #f39c12;
+}
+
+/* ===== ФИЛЬТР ПО ЖАНРАМ (ВЫПАДАЮЩИЙ СПИСОК) ===== */
+.genre-filter {
+    position: relative;
+    display: inline-block;
+}
+
+.genre-filter-btn {
+    cursor: pointer;
+}
+
+.genre-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    padding: 12px;
+    width: 250px;
+    margin-top: 5px;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 400px;
+}
+
+.genre-dropdown.hidden {
+    display: none;
+}
+
+.genre-search {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border 0.2s;
+    flex-shrink: 0;
+}
+
+.genre-search:focus {
+    border-color: #3498db;
+}
+
+.genre-list {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    min-height: 150px;
+    max-height: 250px;
+}
+
+.genre-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.genre-item:hover {
+    background-color: #f1f5f9;
+}
+
+.genre-item input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.genre-item label {
+    cursor: pointer;
+    flex: 1;
+    font-size: 0.95rem;
+    color: #1e293b;
+}
+
+.genre-clear {
+    flex-shrink: 0;
+    width: 100%;
+    padding: 8px;
+    background-color: #f1f5f9;
+    border: none;
+    border-radius: 20px;
+    color: #475569;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.genre-clear:hover {
+    background-color: #e2e8f0;
+}
+
+/* ===== СЕТКА ФИЛЬМОВ НА ГЛАВНОЙ ===== */
+.films-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto 80px;
+}
+
+/* ===== КАРТОЧКА ФИЛЬМА ===== */
+.film-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    height: 100%;
+}
+
+.film-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.film-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.12);
+}
+
+.film-poster {
+    aspect-ratio: 2 / 3;
+    background-color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.film-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.poster-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.film-info {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.film-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.film-title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.3;
+}
+
+.film-year.film-genre {
+    margin: 0;
+}
+
+.film-director {
+    display: inline-block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 12px;
+}
+
+.film-genres {
+    margin-bottom: 12px;
+}
+
+.film-genre {
+    display: inline-block;
+    background-color: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    color: #475569;
+    font-weight: 500;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.film-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    border-top: 1px solid #e9eef2;
+    padding-top: 12px;
+}
+
+.film-meta-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.film-rating {
+    font-weight: 600;
+    color: #f59e0b;
+    background-color: #fffbeb;
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    line-height: 1.2;
+}
+
+.film-duration.film-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background-color: #e6f0fa;
+    color: #475569;
+    border-radius: 10px;
+}
+
+.favorite-btn {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+    padding: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
+}
+
+.favorite-btn:hover {
+    color: #ef4444;
+    transform: scale(1.1);
+}
+
+/* ===== ДЕТАЛЬНАЯ СТРАНИЦА ФИЛЬМА ===== */
+.film-detail {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.film-detail-card {
+    display: flex;
+    gap: 30px;
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.film-detail-poster {
+    flex: 0 0 300px;
+}
+
+.film-detail-poster img {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.film-detail-info {
+    flex: 1;
+}
+
+.film-detail-info h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    color: #1e293b;
+}
+
+.film-detail-info p {
+    margin: 10px 0;
+    font-size: 1.1rem;
+    color: #334155;
+}
+
+.film-detail-info .film-genres {
+    margin-bottom: 15px;
+}
+
+/* ===== БЛОК ОЦЕНОК ===== */
+.rating-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.rating-section h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #1e293b;
+}
+
+/* Сетка ползунков */
+.rating-scales {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Карточка ползунка */
+.scale-item {
+    border: 2px solid;
+    border-radius: 16px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: box-shadow 0.2s;
+}
+
+.scale-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Синяя тема для базовых шкал */
+.scale-base {
+    border-color: #3498db;
+    background-color: rgba(52, 152, 219, 0.08);
+}
+
+/* Лиловая тема для субъективной шкалы */
+.scale-subj {
+    border-color: #9b59b6;
+    background-color: rgba(155, 89, 182, 0.08);
+}
+
+/* Верхняя часть: название и значение */
+.scale-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+}
+
+.scale-name {
+    color: #1e293b;
+    font-size: 1rem;
+}
+
+.scale-value {
+    color: #3498db;
+    font-size: 1.1rem;
+    background: white;
+    padding: 2px 10px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+/* Стилизация ползунка */
+.scale-item input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: linear-gradient(90deg, #3498db, #9b59b6);
+    border-radius: 10px;
+    outline: none;
+    width: 100%;
+}
+
+.scale-item input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 2px solid #3498db;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: transform 0.1s;
+}
+
+.scale-item input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.scale-item input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 2px solid #3498db;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.scale-item input[type="range"]::-moz-range-track {
+    height: 8px;
+    background: linear-gradient(90deg, #3498db, #9b59b6);
+    border-radius: 10px;
+}
+
+/* Итоговая оценка */
+.total-rating {
+    text-align: center;
+    font-size: 1.5rem;
+    padding: 15px;
+    background-color: #f1f5f9;
+    border-radius: 12px;
+}
+
+.total-rating strong {
+    color: #1e293b;
+}
+
+.total-rating span {
+    color: #e67e22;
+    font-size: 2rem;
+    margin-left: 10px;
+}
+
+/* ===== ПОДВАЛ ===== */
+.footer {
+    background-color: #1e2a36;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: auto;
+    font-size: 0.9rem;
+}
+
+/* ===== АДАПТИВНОСТЬ ===== */
+@media (max-width: 768px) {
+    .film-detail-card {
+        flex-direction: column;
+    }
+    .film-detail-poster {
+        flex: 0 0 auto;
+        max-width: 250px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .header h1 {
+        font-size: 2rem;
+    }
+    .filters {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding-bottom: 5px;
+    }
+    .films-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 15px;
+        padding: 15px;
+    }
+    .film-title {
+        font-size: 1rem;
+    }
+    .film-rating {
+        font-size: 0.85rem;
+        padding: 4px 8px;
+    }
+    .favorite-btn {
+        font-size: 1.1rem;
+    }
+    /* Оценки на мобильных */
+    .rating-scales {
+        grid-template-columns: 1fr;  /* одна колонка */
+    }
+    .scale-header {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 380px) {
+    .films-grid {
+        grid-template-columns: 1fr;
+    }
+}
