@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 film = {
                     ...film,
                     poster: cachedData.poster || film.poster,
-                    genres: cachedData.genres.length ? cachedData.genres : film.genres,
+                    genres: film.genres && film.genres.length > 0 ? film.genres : (cachedData.genres.length ? cachedData.genres : film.genres),
                     rating: cachedData.rating || film.rating,
                     description: cachedData.description || film.description || '',
                     director: cachedData.director || film.director || '',
