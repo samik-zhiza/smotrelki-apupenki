@@ -5,10 +5,103 @@ let filteredFilms = [];
 let container;
 let currentSortType = 'year';
 let activeGenres = [];
-let showOnlyFavorites = false; // флаг для фильтра "Только избранное"
+let showOnlyFavorites = false;
 
-// Ключ для хранения избранных в localStorage
+// TMDB API конфигурация
+const TMDB_API_KEY = "c62338407764b89796db0ebc6d3af4ed"; // замени на свой ключ
+const TMDB_API_URL = "https://api.themoviedb.org/3";
+const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
+
+// Кеш для данных TMDB
+const TMDB_CACHE_KEY = 'tmdb_cache';
+const TMDB_GENRES_CACHE_KEY = 'tmdb_genres';
+
+// Кеш для избранного
 const FAVORITES_STORAGE_KEY = 'filmFavorites';
+
+// Получаем список жанров (кешируем на неделю)
+async function getGenres() {
+    const cached = localStorage.getItem(TMDB_GENRES_CACHE_KEY);
+    if (cached) {
+        const { genres, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < 7 * 24 * 60 * 60 * 1000) {
+            return genres;
+        }
+    }
+    try {
+        const resp = await fetch(`${TMDB_API_URL}/genre/movie/list?api_key=${TMDB_API_KEY}&language=ru-RU`);
+        if (!resp.ok) throw new Error('Ошибка загрузки жанров');
+        const data = await resp.json();
+        const genresMap = {};
+        data.genres.forEach(g => genresMap[g.id] = g.name);
+        localStorage.setItem(TMDB_GENRES_CACHE_KEY, JSON.stringify({ genres: genresMap, timestamp: Date.now() }));
+        return genresMap;
+    } catch (error) {
+        console.error('Ошибка получения жанров:', error);
+        return {};
+    }
+}
+
+// Функция для получения данных фильма из TMDB
+async function getMovieDataFromTMDB(film) {
+    const title = film.title;
+    const year = film.year;
+    const originalTitle = film.original_title || title;
+
+    const cache = JSON.parse(localStorage.getItem(TMDB_CACHE_KEY) || '{}');
+    const cacheKey = `${title}_${year}`;
+
+    if (cache[cacheKey] && (Date.now() - cache[cacheKey].timestamp < 7 * 24 * 60 * 60 * 1000)) {
+        console.log(`✅ Из кеша: ${title}`);
+        return cache[cacheKey].data;
+    }
+
+    try {
+        console.log(`🔍 Ищем: ${title} (${year})`);
+        const searchUrl = `${TMDB_API_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(originalTitle)}&year=${year}&language=ru-RU`;
+        const searchResp = await fetch(searchUrl);
+        if (!searchResp.ok) throw new Error(`Ошибка поиска: ${searchResp.status}`);
+        const searchData = await searchResp.json();
+
+        if (!searchData.results || searchData.results.length === 0) {
+            console.warn(`❌ Не найдено фильмов по запросу "${title}"`);
+            return null;
+        }
+
+        const movie = searchData.results[0];
+
+        const genresMap = await getGenres();
+        const genreNames = movie.genre_ids.map(id => genresMap[id] || '').filter(g => g);
+
+        const detailResp = await fetch(`${TMDB_API_URL}/movie/${movie.id}?api_key=${TMDB_API_KEY}&language=ru-RU&append_to_response=credits`);
+        if (!detailResp.ok) throw new Error(`Ошибка получения деталей: ${detailResp.status}`);
+        const detailData = await detailResp.json();
+
+        let director = '';
+        if (detailData.credits && detailData.credits.crew) {
+            const directorObj = detailData.credits.crew.find(person => person.job === 'Director');
+            director = directorObj ? directorObj.name : '';
+        }
+
+        const result = {
+            poster: movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : '',
+            genres: genreNames,
+            rating: movie.vote_average ? movie.vote_average.toFixed(1) : '',
+            description: movie.overview || '',
+            year: movie.release_date ? movie.release_date.split('-')[0] : year,
+            director: director,
+            duration: detailData.runtime ? `${Math.floor(detailData.runtime / 60)} ч ${detailData.runtime % 60} мин` : '',
+        };
+
+        cache[cacheKey] = { data: result, timestamp: Date.now() };
+        localStorage.setItem(TMDB_CACHE_KEY, JSON.stringify(cache));
+        console.log(`💾 Сохранено в кеш: ${title}`);
+        return result;
+    } catch (error) {
+        console.error(`🔥 Ошибка для "${title}":`, error);
+        return null;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     container = document.getElementById('films-container');
@@ -22,16 +115,34 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
             return response.json();
         })
-        .then(films => {
+        .then(async films => {
             allFilms = films;
-            // Убедимся, что у каждого фильма есть id (если вдруг в JSON нет, добавим)
             allFilms.forEach((film, index) => {
-                if (film.id === undefined) {
-                    film.id = index; // запасной вариант, если забудешь добавить id
+                if (film.id === undefined) film.id = index;
+            });
+
+            container.innerHTML = '<p style="text-align: center;">Загрузка данных с TMDB...</p>';
+
+            const enrichedPromises = allFilms.map(async film => {
+                const tmdbData = await getMovieDataFromTMDB(film);
+                if (tmdbData) {
+                    return {
+                        ...film,
+                        poster: tmdbData.poster || film.poster,
+                        genres: tmdbData.genres.length ? tmdbData.genres : film.genres,
+                        rating: tmdbData.rating || film.rating,
+                        description: tmdbData.description || film.description || '',
+                        director: film.director || tmdbData.director || '',
+                        duration: tmdbData.duration || film.duration || '—',
+                    };
+                } else {
+                    return film;
                 }
             });
+
+            const enrichedFilms = await Promise.all(enrichedPromises);
+            allFilms = enrichedFilms;
             filteredFilms = [...allFilms];
-            console.log('Фильмы загружены:', allFilms);
 
             populateGenreList();
             applySortAndFilter();
@@ -79,18 +190,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Кнопка "Только избранное"
-    const favoritesBtn = document.getElementById('favorites-filter'); // последняя кнопка
+    const favoritesBtn = document.getElementById('favorites-filter');
     if (favoritesBtn) {
         favoritesBtn.addEventListener('click', () => {
-            showOnlyFavorites = !showOnlyFavorites; // переключаем флаг
-            favoritesBtn.classList.toggle('active', showOnlyFavorites); // добавим класс для стилей
+            showOnlyFavorites = !showOnlyFavorites;
+            favoritesBtn.classList.toggle('active', showOnlyFavorites);
             applySortAndFilter();
         });
     }
 });
 
-// ---------- Функции для работы с избранным ----------
+// ---------- Избранное ----------
 function getFavorites() {
     const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
@@ -108,14 +218,11 @@ function toggleFavorite(filmId) {
         favorites.push(filmId);
     }
     saveFavorites(favorites);
-
-    // Перерисовываем карточки, чтобы обновить иконки
     applySortAndFilter();
 }
 
-// ---------- Функции фильтрации и сортировки ----------
+// ---------- Фильтрация и сортировка ----------
 function applySortAndFilter() {
-    // 1. Фильтрация по жанрам (если выбраны)
     if (activeGenres.length > 0) {
         filteredFilms = allFilms.filter(film =>
             film.genres.some(genre => activeGenres.includes(genre))
@@ -124,16 +231,12 @@ function applySortAndFilter() {
         filteredFilms = [...allFilms];
     }
 
-    // 2. Фильтрация по избранному (если включено)
     if (showOnlyFavorites) {
         const favorites = getFavorites();
         filteredFilms = filteredFilms.filter(film => favorites.includes(film.id));
     }
 
-    // 3. Сортировка
     sortFilteredFilms();
-
-    // 4. Рендер
     renderFilmCards(filteredFilms);
 }
 
@@ -172,9 +275,7 @@ function populateGenreList() {
         checkbox.type = 'checkbox';
         checkbox.value = genre;
         checkbox.id = `genre-${slugify(genre)}`;
-        checkbox.addEventListener('change', (e) => {
-            updateActiveGenres();
-        });
+        checkbox.addEventListener('change', () => updateActiveGenres());
 
         const label = document.createElement('label');
         label.htmlFor = checkbox.id;
@@ -191,11 +292,7 @@ function filterGenreList(query) {
     const lowerQuery = query.toLowerCase();
     items.forEach(item => {
         const genre = item.dataset.genre.toLowerCase();
-        if (genre.includes(lowerQuery)) {
-            item.style.display = 'flex';
-        } else {
-            item.style.display = 'none';
-        }
+        item.style.display = genre.includes(lowerQuery) ? 'flex' : 'none';
     });
 }
 
@@ -208,9 +305,7 @@ function updateActiveGenres() {
 }
 
 function clearGenreFilter() {
-    document.querySelectorAll('.genre-item input').forEach(cb => {
-        cb.checked = false;
-    });
+    document.querySelectorAll('.genre-item input').forEach(cb => cb.checked = false);
     activeGenres = [];
     applySortAndFilter();
 }
@@ -218,38 +313,33 @@ function clearGenreFilter() {
 // ---------- Рендер карточек ----------
 function renderFilmCards(films) {
     container.innerHTML = '';
-    const favorites = getFavorites(); // получаем текущий список избранных
+    const favorites = getFavorites();
 
     films.forEach(film => {
         const cardHtml = createFilmCard(film, favorites.includes(film.id));
         container.insertAdjacentHTML('beforeend', cardHtml);
     });
 
-    // После добавления карточек навешиваем обработчики на кнопки избранного
     document.querySelectorAll('.favorite-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            e.preventDefault();      // отменяет переход по ссылке
-            e.stopPropagation();     // предотвращает всплытие события
+            e.preventDefault();
+            e.stopPropagation();
             const filmId = Number(btn.dataset.filmId);
             toggleFavorite(filmId);
         });
     });
 }
 
-// Создание HTML карточки с учётом состояния избранного
 function createFilmCard(film, isFavorite) {
     const genresHtml = film.genres.map(genre => {
-        const genreClass = slugify(genre);
-        return `<span class="film-genre genre-${genreClass}">${escapeHtml(genre)}</span>`;
+        return `<span class="film-genre">${escapeHtml(genre)}</span>`;
     }).join('');
 
     const durationText = film.duration ? film.duration : '—';
-    const ratingText = film.rating && film.rating !== '' ? `⭐ ${film.rating}` : '⭐';
+    const ratingText = film.rating ? `⭐ ${film.rating}` : '⭐';
     const safeTitle = escapeHtml(film.title);
     const safeDirector = escapeHtml(film.director);
     const year = film.year;
-
-    // Иконка сердечка: заполненное, если в избранном
     const heartIcon = isFavorite ? 'fas fa-heart' : 'far fa-heart';
 
     return `
@@ -270,7 +360,6 @@ function createFilmCard(film, isFavorite) {
                         <span class="film-duration film-rating"><i class="far fa-clock"></i> ${durationText}</span>
                         <span class="film-rating">${ratingText}</span>
                     </div>
-                    <!-- Кнопка избранного должна быть внутри ссылки, но чтобы клик по ней не переходил по ссылке, добавим обработчик позже -->
                     <button class="favorite-btn" data-film-id="${film.id}" aria-label="Добавить в избранное">
                         <i class="${heartIcon}"></i>
                     </button>
@@ -293,25 +382,7 @@ function escapeHtml(unsafe) {
 }
 
 function slugify(text) {
-    // ... (без изменений, оставь как есть)
-    if (!text) return '';
-    const translitMap = {
-        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
-        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
-        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-        'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch',
-        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
-        'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'E',
-        'Ж': 'ZH', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M',
-        'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U',
-        'Ф': 'F', 'Х': 'KH', 'Ц': 'TS', 'Ч': 'CH', 'Ш': 'SH', 'Щ': 'SHCH',
-        'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'YU', 'Я': 'YA',
-        ' ': '-', ',': '', '.': '', '(': '', ')': '', '!': '', '?': '', ':': '', ';': '', '"': '', "'": ''
-    };
-    let result = '';
-    for (let char of text) {
-        result += translitMap[char] !== undefined ? translitMap[char] : char;
-    }
-    result = result.replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-    return result.toLowerCase();
+    // Оставляем как есть, но теперь не используется для цветов жанров
+    // Можно оставить для совместимости, но цвета убрали
+    return text.toLowerCase().replace(/[^a-zа-яё0-9]/gi, '-');
 }
