@@ -34,29 +34,34 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!response.ok) throw new Error('Ошибка загрузки данных');
             return response.json();
         })
-        .then(films => {
-            let film = films.find(f => f.id == filmId);
+        .then(async films => {  // ← добавили async
+            const film = films.find(f => f.id == filmId);
             if (!film) {
                 container.innerHTML = '<p style="color: red;">Фильм не найден</p>';
                 return;
             }
 
-            // Пытаемся получить обогащённые данные из кеша
-            const cachedData = getMovieDataFromCache(film.title, film.year);
-            if (cachedData) {
-                // Объединяем с оригинальными данными (приоритет у кеша)
-                film = {
-                    ...film,
-                    poster: cachedData.poster || film.poster,
-                    genres: film.genres && film.genres.length > 0 ? film.genres : (cachedData.genres.length ? cachedData.genres : film.genres),
-                    rating: cachedData.rating || film.rating,
-                    description: cachedData.description || film.description || '',
-                    director: cachedData.director || film.director || '',
-                    duration: cachedData.duration || film.duration || '—',
-                };
+            // Сначала пытаемся получить из кеша
+            let filmData = getMovieDataFromCache(film.title, film.year);
+
+            // Если в кеше нет, делаем прямой запрос к TMDB
+            if (!filmData) {
+                container.innerHTML = '<p style="text-align: center;">Загрузка данных о фильме...</p>';
+                filmData = await fetchMovieDataDirectly(film.title, film.year, film.original_title);
             }
 
-            renderFilmDetail(film, container);
+            // Объединяем данные (приоритет: исходный JSON, затем TMDB, но жанры оставляем свои)
+            const enrichedFilm = {
+                ...film,
+                poster: filmData?.poster || film.poster,
+                genres: film.genres,  // всегда оставляем жанры из JSON
+                rating: filmData?.rating || film.rating,
+                description: filmData?.description || film.description || '',
+                director: filmData?.director || film.director || '',
+                duration: filmData?.duration || film.duration || '—',
+            };
+
+            renderFilmDetail(enrichedFilm, container);
             initRatingSystem(film.id);
         })
         .catch(error => {
