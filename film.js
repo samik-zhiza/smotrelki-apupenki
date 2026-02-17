@@ -65,6 +65,65 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 });
 
+// ---------- Новая функция для прямого запроса к TMDB (как в script.js) ----------
+async function fetchMovieDataDirectly(title, year, originalTitle) {
+    const PROXY = 'https://corsproxy.io/?';
+    const searchQuery = originalTitle || title;
+
+    try {
+        const searchUrl = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(searchQuery)}&year=${year}&language=ru-RU`;
+        const searchResp = await fetch(PROXY + encodeURIComponent(searchUrl));
+        if (!searchResp.ok) throw new Error(`Ошибка поиска: ${searchResp.status}`);
+        const searchData = await searchResp.json();
+
+        if (!searchData.results || searchData.results.length === 0) {
+            console.warn(`❌ Не найдено фильмов по запросу "${title}"`);
+            return null;
+        }
+
+        const movie = searchData.results[0];
+
+        // Получаем жанры (используем ту же функцию getGenres, её нужно будет вызвать)
+        // Для этого нужно либо скопировать сюда getGenres, либо сделать её глобальной.
+        // Пока упростим: оставим жанры пустыми, они нам не критичны для детальной страницы,
+        // так как мы хотим сохранить исходные жанры из JSON.
+        const genreNames = []; // Не будем загружать жанры, чтобы не усложнять
+
+        const detailUrl = `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${TMDB_API_KEY}&language=ru-RU&append_to_response=credits`;
+        const detailResp = await fetch(PROXY + encodeURIComponent(detailUrl));
+        if (!detailResp.ok) throw new Error(`Ошибка получения деталей: ${detailResp.status}`);
+        const detailData = await detailResp.json();
+
+        let director = '';
+        if (detailData.credits && detailData.credits.crew) {
+            const directorObj = detailData.credits.crew.find(person => person.job === 'Director');
+            director = directorObj ? directorObj.name : '';
+        }
+
+        const result = {
+            poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '',
+            genres: genreNames, // Оставляем пустым, чтобы не затереть исходные
+            rating: movie.vote_average ? movie.vote_average.toFixed(1) : '',
+            description: movie.overview || '',
+            year: movie.release_date ? movie.release_date.split('-')[0] : year,
+            director: director,
+            duration: detailData.runtime ? `${Math.floor(detailData.runtime / 60)} ч ${detailData.runtime % 60} мин` : '',
+        };
+
+        // Сохраняем в кеш
+        const cacheKey = `${title}_${year}`;
+        const cache = JSON.parse(localStorage.getItem(TMDB_CACHE_KEY) || '{}');
+        cache[cacheKey] = { data: result, timestamp: Date.now() };
+        localStorage.setItem(TMDB_CACHE_KEY, JSON.stringify(cache));
+
+        console.log(`💾 Прямой запрос и сохранение в кеш: ${title}`);
+        return result;
+    } catch (error) {
+        console.error(`🔥 Ошибка прямого запроса для "${title}":`, error);
+        return null;
+    }
+}
+
 function renderFilmDetail(film, container) {
     const genresHtml = film.genres.map(genre => {
         return `<span class="film-genre">${escapeHtml(genre)}</span>`;
