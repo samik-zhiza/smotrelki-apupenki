@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     return {
                         ...film,
                         poster: tmdbData.poster || film.poster,
-                        genres: tmdbData.genres.length ? tmdbData.genres : film.genres,
+                        genres: film.genres && film.genres.length > 0 ? film.genres : (tmdbData.genres.length ? tmdbData.genres : film.genres),
                         rating: tmdbData.rating || film.rating,
                         description: tmdbData.description || film.description || '',
                         director: film.director || tmdbData.director || '',
