@@ -349,7 +349,7 @@ body {
     background: white;
     border-radius: 16px;
     padding: 30px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .film-detail-poster {
@@ -359,7 +359,7 @@ body {
 .film-detail-poster img {
     width: 100%;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .film-detail-info {
@@ -389,7 +389,7 @@ body {
     padding: 20px;
     background: white;
     border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .rating-section h3 {
@@ -418,7 +418,7 @@ body {
 }
 
 .scale-item:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Синяя тема для базовых шкал */
@@ -475,7 +475,7 @@ body {
     border: 2px solid #3498db;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     transition: transform 0.1s;
 }
 
@@ -503,18 +503,38 @@ body {
     text-align: center;
     font-size: 1.5rem;
     padding: 15px;
-    background-color: #f1f5f9;
-    border-radius: 12px;
+    background-color: #e2e8f0;
+    /* чуть темнее, под цвет карточек */
+    border: 2px solid #94a3b8;
+    /* серая рамка */
+    border-radius: 16px;
+    /* чтобы совпадало с карточками */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 .total-rating strong {
     color: #1e293b;
 }
 
-.total-rating span {
-    color: #e67e22;
-    font-size: 2rem;
-    margin-left: 10px;
+.score-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    /* уменьшили вертикальный и горизонтальный отступы */
+    border-radius: 16px;
+    font-size: 1.6rem;
+    /* чуть уменьшили шрифт */
+    font-weight: bold;
+    min-width: 70px;
+    /* чтобы ячейка не схлопывалась при малых числах */
+    text-align: center;
+    color: #1e293b;
+    border: 3px solid transparent;
+    transition: background-color 0.2s, border-color 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* ===== ПОДВАЛ ===== */
@@ -532,6 +552,7 @@ body {
     .film-detail-card {
         flex-direction: column;
     }
+
     .film-detail-poster {
         flex: 0 0 auto;
         max-width: 250px;
@@ -543,31 +564,39 @@ body {
     .header h1 {
         font-size: 2rem;
     }
+
     .filters {
         flex-wrap: nowrap;
         overflow-x: auto;
         justify-content: flex-start;
         padding-bottom: 5px;
     }
+
     .films-grid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 15px;
         padding: 15px;
     }
+
     .film-title {
         font-size: 1rem;
     }
+
     .film-rating {
         font-size: 0.85rem;
         padding: 4px 8px;
     }
+
     .favorite-btn {
         font-size: 1.1rem;
     }
+
     /* Оценки на мобильных */
     .rating-scales {
-        grid-template-columns: 1fr;  /* одна колонка */
+        grid-template-columns: 1fr;
+        /* одна колонка */
     }
+
     .scale-header {
         flex-wrap: wrap;
     }
