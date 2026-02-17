@@ -1,5 +1,22 @@
 // film.js
 
+// Конфигурация TMDB (такая же, как в script.js)
+const TMDB_API_KEY = "c62338407764b89796db0ebc6d3af4ed";
+const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
+const TMDB_CACHE_KEY = 'tmdb_cache';
+
+// Вспомогательная функция для чтения из кеша
+function getMovieDataFromCache(title, year) {
+    const cache = JSON.parse(localStorage.getItem(TMDB_CACHE_KEY) || '{}');
+    const cacheKey = `${title}_${year}`;
+    const cached = cache[cacheKey];
+    if (cached && (Date.now() - cached.timestamp < 7 * 24 * 60 * 60 * 1000)) {
+        console.log(`✅ Из кеша (film.js): ${title}`);
+        return cached.data;
+    }
+    return null;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const container = document.getElementById('film-detail');
     if (!container) return;
@@ -18,14 +35,29 @@ document.addEventListener('DOMContentLoaded', function () {
             return response.json();
         })
         .then(films => {
-            const film = films.find(f => f.id == filmId);
+            let film = films.find(f => f.id == filmId);
             if (!film) {
                 container.innerHTML = '<p style="color: red;">Фильм не найден</p>';
                 return;
             }
 
+            // Пытаемся получить обогащённые данные из кеша
+            const cachedData = getMovieDataFromCache(film.title, film.year);
+            if (cachedData) {
+                // Объединяем с оригинальными данными (приоритет у кеша)
+                film = {
+                    ...film,
+                    poster: cachedData.poster || film.poster,
+                    genres: cachedData.genres.length ? cachedData.genres : film.genres,
+                    rating: cachedData.rating || film.rating,
+                    description: cachedData.description || film.description || '',
+                    director: cachedData.director || film.director || '',
+                    duration: cachedData.duration || film.duration || '—',
+                };
+            }
+
             renderFilmDetail(film, container);
-            initRatingSystem(film.id); // Инициализация системы оценок
+            initRatingSystem(film.id);
         })
         .catch(error => {
             console.error('Ошибка:', error);
@@ -35,13 +67,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function renderFilmDetail(film, container) {
     const genresHtml = film.genres.map(genre => {
-        const genreClass = slugify(genre);
-        return `<span class="film-genre genre-${genreClass}">${escapeHtml(genre)}</span>`;
+        return `<span class="film-genre">${escapeHtml(genre)}</span>`;
     }).join('');
 
-    const videoLink = film.videoUrl 
+    const videoLink = film.videoUrl
         ? `<p><strong>Смотреть:</strong> <a href="${film.videoUrl}" target="_blank">${film.videoUrl}</a></p>`
         : '<p><em>Ссылка на видео пока не добавлена</em></p>';
+
+    const descriptionHtml = film.description ? `<p><strong>Описание:</strong> ${escapeHtml(film.description)}</p>` : '';
 
     const posterHtml = film.poster
         ? `<img src="${film.poster}" alt="${escapeHtml(film.title)}" style="max-width: 300px; border-radius: 8px;">`
@@ -63,61 +96,57 @@ function renderFilmDetail(film, container) {
                 <p><strong>Длительность:</strong> ${durationText}</p>
                 ${ratingText ? `<p><strong>Рейтинг:</strong> ${ratingText}</p>` : ''}
                 ${videoLink}
+                ${descriptionHtml}
             </div>
         </div>
         <div class="rating-section">
             <h3>Оцени фильм</h3>
-
-            
             <div class="rating-scales">
-                <!-- Базовые шкалы с синей рамкой -->
                 <div class="scale-item scale-base">
                     <div class="scale-header">
-                        <span class="scale-name">Сценарий:</span>
+                        <span class="scale-name">Сценарий</span>
                         <span class="scale-value" id="scale1-value">5</span>
                     </div>
-                    <input type="range" id="scale1" min="0" max="10" step="1" value="5">
+                    <input type="range" id="scale1" min="1" max="10" step="1" value="5">
                 </div>
                 <div class="scale-item scale-base">
                     <div class="scale-header">
-                        <span class="scale-name">Режиссура:</span>
+                        <span class="scale-name">Режиссура</span>
                         <span class="scale-value" id="scale2-value">5</span>
                     </div>
-                    <input type="range" id="scale2" min="0" max="10" step="1" value="5">
+                    <input type="range" id="scale2" min="1" max="10" step="1" value="5">
                 </div>
                 <div class="scale-item scale-base">
                     <div class="scale-header">
-                        <span class="scale-name">Визуал + музыка:</span>
+                        <span class="scale-name">Визуал + музыка</span>
                         <span class="scale-value" id="scale3-value">5</span>
                     </div>
-                    <input type="range" id="scale3" min="0" max="10" step="1" value="5">
+                    <input type="range" id="scale3" min="1" max="10" step="1" value="5">
                 </div>
                 <div class="scale-item scale-base">
                     <div class="scale-header">
-                        <span class="scale-name">Каст:</span>
+                        <span class="scale-name">Актёрский состав</span>
                         <span class="scale-value" id="scale4-value">5</span>
                     </div>
-                    <input type="range" id="scale4" min="0" max="10" step="1" value="5">
+                    <input type="range" id="scale4" min="1" max="10" step="1" value="5">
                 </div>
                 <div class="scale-item scale-base">
                     <div class="scale-header">
                         <span class="scale-name">Хорош в рамках жанра + для своего времени?</span>
                         <span class="scale-value" id="scale5-value">5</span>
                     </div>
-                    <input type="range" id="scale5" min="0" max="10" step="1" value="5">
+                    <input type="range" id="scale5" min="1" max="10" step="1" value="5">
                 </div>
-                <!-- Субъективная шкала с розовато-лиловой рамкой -->
                 <div class="scale-item scale-subj">
                     <div class="scale-header">
-                        <span class="scale-name">Общее впечатление:</span>
+                        <span class="scale-name">Общее впечатление</span>
                         <span class="scale-value" id="subj-value">5</span>
                     </div>
-                    <input type="range" id="subj" min="0" max="10" step="1" value="5">
+                    <input type="range" id="subj" min="1" max="10" step="1" value="5">
                 </div>
             </div>
-           
             <div class="total-rating">
-                <strong>Итоговая оценка: <span id="total-score">0</span></strong>
+                <strong>Итоговая оценка:</strong> <span id="total-score" class="score-badge">0</span>
             </div>
         </div>
     `;
@@ -125,9 +154,8 @@ function renderFilmDetail(film, container) {
     container.innerHTML = html;
 }
 
-// ---------- Система оценок по формуле из Google Sheets ----------
+// ---------- Система оценок (с градиентной заливкой ползунков, левая часть цветная, правая серая) ----------
 function initRatingSystem(filmId) {
-    // Элементы ползунков
     const scale1 = document.getElementById('scale1');
     const scale2 = document.getElementById('scale2');
     const scale3 = document.getElementById('scale3');
@@ -135,7 +163,6 @@ function initRatingSystem(filmId) {
     const scale5 = document.getElementById('scale5');
     const subj = document.getElementById('subj');
 
-    // Элементы отображения значений
     const scale1value = document.getElementById('scale1-value');
     const scale2value = document.getElementById('scale2-value');
     const scale3value = document.getElementById('scale3-value');
@@ -146,17 +173,43 @@ function initRatingSystem(filmId) {
 
     if (!scale1 || !scale2 || !scale3 || !scale4 || !scale5 || !subj) return;
 
-    // Функция пересчёта итога
+    // Функция обновления фона ползунка:
+    // левая часть до текущего значения – градиент от startColor к endColor,
+    // правая часть – серая (#e2e8f0)
+    function updateRangeBackground(range, startColor, endColor) {
+        const min = parseFloat(range.min);
+        const max = parseFloat(range.max);
+        const val = parseFloat(range.value);
+        const percent = ((val - min) / (max - min)) * 100;
+        // Формируем градиент: от startColor до endColor на ширину percent,
+        // затем резкий переход на серый цвет до конца
+        range.style.background = `linear-gradient(to right, ${startColor} 0%, ${endColor} ${percent}%, #e2e8f0 ${percent}%, #e2e8f0 100%)`;
+    }
+
+    // Цвета для итоговой оценки (без изменений)
+    const colorPairs = [
+        { max: 3, bg: '#ef4444', border: '#b91c1c' },
+        { max: 5, bg: '#f87171', border: '#b91c1c' },
+        { max: 7, bg: '#fde047', border: '#eab308' },
+        { max: 8.5, bg: '#86efac', border: '#22c55e' },
+        { max: 10, bg: '#22c55e', border: '#16a34a' },
+        { max: Infinity, bg: '#8b5cf6', border: '#6b21a8' }
+    ];
+
+    function setScoreColor(score, element) {
+        const pair = colorPairs.find(p => score < p.max) || colorPairs[colorPairs.length - 1];
+        element.style.backgroundColor = pair.bg;
+        element.style.borderColor = pair.border;
+    }
+
     function updateTotal() {
-        // Получаем значения (числа)
         const s1 = parseFloat(scale1.value);
         const s2 = parseFloat(scale2.value);
         const s3 = parseFloat(scale3.value);
         const s4 = parseFloat(scale4.value);
         const s5 = parseFloat(scale5.value);
-        const m = parseFloat(subj.value); // субъективный параметр
+        const m = parseFloat(subj.value);
 
-        // Обновляем отображение чисел рядом с ползунками
         scale1value.textContent = s1;
         scale2value.textContent = s2;
         scale3value.textContent = s3;
@@ -164,33 +217,34 @@ function initRatingSystem(filmId) {
         scale5value.textContent = s5;
         subjvalue.textContent = m;
 
-        // Вычисляем среднее базовых шкал (H3:L3)
-        const avgBase = (s1 + s2 + s3 + s4 + s5) / 5;
+        // Обновляем фон ползунков
+        updateRangeBackground(scale1, '#3498db', '#9b59b6');
+        updateRangeBackground(scale2, '#3498db', '#9b59b6');
+        updateRangeBackground(scale3, '#3498db', '#9b59b6');
+        updateRangeBackground(scale4, '#3498db', '#9b59b6');
+        updateRangeBackground(scale5, '#3498db', '#9b59b6');
+        updateRangeBackground(subj, '#9b59b6', '#d8b4ff'); // для субъективной более светлый конец
 
-        // Разность между субъективной и средней базой (M3 - СРЗНАЧ(H3:L3))
+        const avgBase = (s1 + s2 + s3 + s4 + s5) / 5;
         const diff = m - avgBase;
 
-        // Вычисляем дополнительный вес по формуле
         let additionalWeight = 0;
         if (diff >= 0) {
-            // Часть для положительной разницы
-            const part1 = diff * (-0.2 * Math.pow(diff, 2) + 50) / 100;   // делим на 100, т.к. в формуле проценты
+            const part1 = diff * (-0.2 * Math.pow(diff, 2) + 50) / 100;
             const part2 = (0.5 * Math.pow(m, 2) + 50) / 100;
             additionalWeight = part1 * part2;
         } else {
-            // Часть для отрицательной разницы
             const part1 = diff * (-0.2 * Math.pow(diff, 2) + 50) / 100;
             const part2 = (-0.5 * Math.pow(m, 2) + 100) / 100;
             additionalWeight = part1 * part2;
         }
 
-        // Итоговая оценка = среднее базовых + дополнительный вес, округлённая до 1 знака
         const total = avgBase + additionalWeight;
-        const roundedTotal = Math.round(total * 10) / 10; // округление до десятых
-
+        const roundedTotal = Math.round(total * 10) / 10;
         totalSpan.textContent = roundedTotal;
 
-        // Сохраняем значения в localStorage
+        setScoreColor(roundedTotal, totalSpan);
+
         const ratingData = { s1, s2, s3, s4, s5, m };
         localStorage.setItem(`filmRating_${filmId}`, JSON.stringify(ratingData));
     }
@@ -207,7 +261,14 @@ function initRatingSystem(filmId) {
         subj.value = data.m;
     }
 
-    // Вешаем обработчики
+    // Применяем фон после установки сохранённых значений
+    updateRangeBackground(scale1, '#3498db', '#9b59b6');
+    updateRangeBackground(scale2, '#3498db', '#9b59b6');
+    updateRangeBackground(scale3, '#3498db', '#9b59b6');
+    updateRangeBackground(scale4, '#3498db', '#9b59b6');
+    updateRangeBackground(scale5, '#3498db', '#9b59b6');
+    updateRangeBackground(subj, '#9b59b6', '#d8b4ff');
+
     scale1.addEventListener('input', updateTotal);
     scale2.addEventListener('input', updateTotal);
     scale3.addEventListener('input', updateTotal);
@@ -215,11 +276,9 @@ function initRatingSystem(filmId) {
     scale5.addEventListener('input', updateTotal);
     subj.addEventListener('input', updateTotal);
 
-    // Первый вызов для установки начальных значений
-    updateTotal();
+    updateTotal(); // первый вызов для установки всех значений и фона
 }
 
-// ---------- Утилиты ----------
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
     return unsafe
@@ -228,27 +287,4 @@ function escapeHtml(unsafe) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
-}
-
-function slugify(text) {
-    if (!text) return '';
-    const translitMap = {
-        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
-        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
-        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-        'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch',
-        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
-        'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'E',
-        'Ж': 'ZH', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M',
-        'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U',
-        'Ф': 'F', 'Х': 'KH', 'Ц': 'TS', 'Ч': 'CH', 'Ш': 'SH', 'Щ': 'SHCH',
-        'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'YU', 'Я': 'YA',
-        ' ': '-', ',': '', '.': '', '(': '', ')': '', '!': '', '?': '', ':': '', ';': '', '"': '', "'": ''
-    };
-    let result = '';
-    for (let char of text) {
-        result += translitMap[char] !== undefined ? translitMap[char] : char;
-    }
-    result = result.replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-    return result.toLowerCase();
 }
