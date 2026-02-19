@@ -12,25 +12,60 @@
 <body>
     <header class="header">
         <h1>🍿 Апупенные смотрелки</h1>
+        <nav style="margin-top: 10px;">
+            <a href="index.html" class="active">Главная</a>
+            <a href="music.html">Плейлист</a>
+            <a href="wheel.html">Колесо</a>
+        </nav>
     </header>
 
     <main>
         <div class="filters">
-            <button class="filter-btn" data-sort="year">Сортировать по году</button>
-            <button class="filter-btn" data-sort="title">Сортировать по названию</button>
+            <!-- Верхняя строка: поиск, избранное, сброс -->
+            <div class="filter-row row-top">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Поиск по названию...">
+                    <button class="search-clear" id="search-clear" aria-label="Очистить поиск">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+                <button class="filter-btn" id="favorites-filter">
+                    <i class="far fa-heart" style="margin-right: 5px;"></i> Только избранное
+                </button>
+                <button class="filter-btn reset-btn" id="reset-filters">
+                    <i class="fas fa-undo-alt" style="margin-right: 5px;"></i> Сбросить всё
+                </button>
+            </div>
 
-            <div class="genre-filter">
-                <button class="filter-btn genre-filter-btn">Жанры <i class="fa-solid fa-angle-down"></i></button>
-                <div class="genre-dropdown hidden">
-                    <input type="text" class="genre-search" placeholder="Поиск жанра...">
-                    <div class="genre-list">
-                        <!-- сюда будут добавляться чекбоксы -->
-                    </div>
-                    <button class="genre-clear filter-btn">Сбросить</button>
+            <!-- Средняя строка: сортировка + фильтр по годам -->
+            <div class="filter-row row-middle">
+                <div class="sort-group">
+                    <button class="filter-btn" data-sort="title">Название <span class="sort-arrow"
+                            data-sort="title">↑</span></button>
+                    <button class="filter-btn" data-sort="year">Год <span class="sort-arrow"
+                            data-sort="year">↑</span></button>
+                </div>
+                <div class="year-filter">
+                    <input type="number" id="year-from" class="year-input" placeholder="от" min="1900" max="2030">
+                    <input type="number" id="year-to" class="year-input" placeholder="до" min="1900" max="2030">
+                    <button class="filter-btn apply-btn" id="apply-year-filter"><i class="fas fa-check"></i> OK</button>
                 </div>
             </div>
 
-            <button class="filter-btn" id="favorites-filter">Только избранное</button>
+            <!-- Нижняя строка: жанры -->
+            <div class="filter-row row-bottom">
+                <div class="genre-filter">
+                    <button class="filter-btn genre-filter-btn">Жанры <i class="fa-solid fa-angle-down"></i></button>
+                    <div class="genre-dropdown hidden">
+                        <input type="text" class="genre-search" placeholder="Поиск жанра...">
+                        <div class="genre-list">
+                            <!-- сюда будут добавляться чекбоксы -->
+                        </div>
+                        <button class="genre-clear filter-btn">Сбросить</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="films-grid" id="films-container">
@@ -40,6 +75,7 @@
     <footer class="footer">
         <p>Сделано с ❤️ для друзей</p>
     </footer>
+    <script src="shared.js"></script>
     <script src="script.js"></script>
 </body>
 
