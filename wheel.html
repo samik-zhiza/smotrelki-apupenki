@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Колесо фортуны</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <header class="header">
+        <h1>🍿 Апупенные смотрелки</h1>
+        <nav>
+            <a href="index.html">Главная</a>
+            <a href="music.html">Плейлист</a>
+            <a href="wheel.html" class="active">Колесо</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Фильтры (аналогично главной, но с добавлением фильтра по длительности) -->
+        <div class="filters">
+            <!-- Только нужные фильтры: годы, длительность, жанры и кнопка сброса -->
+            <div class="filter-row row-middle" style="justify-content: space-between; flex-wrap: wrap;">
+                <div class="year-filter">
+                    <input type="number" id="year-from" class="year-input" placeholder="Год от" min="1900" max="2030">
+                    <input type="number" id="year-to" class="year-input" placeholder="Год до" min="1900" max="2030">
+                    <button class="filter-btn apply-btn" id="apply-year-filter"><i class="fas fa-check"></i> OK</button>
+                </div>
+                <div class="duration-filter">
+                    <input type="number" id="duration-min" class="year-input duration-input" placeholder="Мин от"
+                        min="0" step="5">
+                    <input type="number" id="duration-max" class="year-input duration-input" placeholder="Мин до"
+                        min="0" step="5">
+                    <button class="filter-btn apply-btn" id="apply-duration-filter"><i class="fas fa-clock"></i>
+                        OK</button>
+                </div>
+                <button class="filter-btn reset-btn" id="reset-filters">
+                    <i class="fas fa-undo-alt"></i> Сбросить фильтры
+                </button>
+            </div>
+
+            <!-- Жанры остаются -->
+            <div class="filter-row row-bottom">
+                <div class="genre-filter">
+                    <button class="filter-btn genre-filter-btn">Жанры <i class="fa-solid fa-angle-down"></i></button>
+                    <div class="genre-dropdown hidden">
+                        <input type="text" class="genre-search" placeholder="Поиск жанра...">
+                        <div class="genre-list"></div>
+                        <button class="genre-clear filter-btn">Сбросить жанры</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основная область колеса -->
+        <div class="wheel-container">
+            <!-- Левая часть: колесо и доступные фильмы -->
+            <div class="wheel-left">
+                <div class="wheel-display">
+                    <h2>Случайный фильм</h2>
+                    <div class="wheel-preview" id="wheel-preview">
+                        <span id="wheel-title">🎡 Нажми "Крутить!"</span>
+                        <div class="wheel-poster" id="wheel-poster">
+                            <div class="poster-placeholder">?</div>
+                        </div>
+                    </div>
+                    <button class="filter-btn spin-btn" id="spin-button">
+                        <i class="fas fa-sync-alt"></i> Крутить!
+                    </button>
+                </div>
+
+                <!-- Сетка доступных фильмов (с кнопками исключения) -->
+                <div class="available-films">
+                    <h3>Доступные фильмы (нажмите на 🚫, чтобы исключить)</h3>
+                    <div class="films-grid" id="films-container"></div>
+                </div>
+            </div>
+
+            <!-- Правая панель: исключённые фильмы -->
+            <div class="excluded-panel">
+                <h3>Исключённые из колеса</h3>
+                <div class="excluded-list" id="excluded-list">
+                    <!-- Сюда будут добавляться карточки исключённых фильмов -->
+                </div>
+                <p class="excluded-info">Кликните на фильм, чтобы вернуть</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>Сделано с ❤️ для друзей</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script src="wheel.js"></script>
+</body>
+
+</html>
