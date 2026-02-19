@@ -16,7 +16,6 @@ body {
 }
 
 /* ===== ШАПКА ===== */
-/* ===== ШАПКА (НОВАЯ) ===== */
 .header {
     background: linear-gradient(135deg, #3498db 0%, #9b59b6 100%);
     color: white;
@@ -28,7 +27,6 @@ body {
     border-bottom: 3px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Для красоты можно добавить тонкий узор поверх градиента (опционально) */
 .header::before {
     content: "";
     position: absolute;
@@ -55,7 +53,6 @@ body {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Ссылка "Назад к списку" (на детальной странице) */
 .header a {
     color: white;
     text-decoration: underline;
@@ -67,41 +64,190 @@ body {
     opacity: 0.8;
 }
 
-/* ===== ПАНЕЛЬ ФИЛЬТРОВ ===== */
+.header nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.header nav a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-weight: 600;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.header nav a:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.header nav a.active {
+    background-color: white;
+    color: #2c3e50;
+    border-color: white;
+}
+
+/* ===== ПАНЕЛЬ ФИЛЬТРОВ (НОВАЯ СТРУКТУРА) ===== */
 .filters {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
+    flex-direction: column;
+    gap: 15px;
     margin: 30px auto;
     max-width: 1200px;
     padding: 0 20px;
 }
 
-.filter-btn {
-    padding: 10px 20px;
-    background-color: #3498db;
-    color: white;
-    border: none;
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Верхний ряд: поиск, избранное, сброс */
+.row-top {
+    justify-content: space-between;
+}
+
+.search-wrapper {
+    position: relative;
+    flex: 1 1 300px;
+    min-width: 200px;
+}
+
+.search-wrapper:hover {
+    transform: none;
+}
+
+.search-wrapper .search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 1rem;
+    pointer-events: none;
+    z-index: 2;
+}
+
+#search-input {
+    width: 100%;
+    padding: 10px 40px 10px 40px;
+    border: 2px solid #3498db;
     border-radius: 30px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: white;
+    color: #1e293b;
+}
+
+#search-input:hover {
+    border-color: #2980b9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#search-input:focus {
+    border-color: #9b59b6;
+    box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
+}
+
+#search-input::placeholder {
+    color: #94a3b8;
+    font-weight: normal;
+}
+
+.search-clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.2rem;
     cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    transition: color 0.2s, background-color 0.2s;
+    z-index: 2;
 }
 
-.filter-btn:hover {
-    background-color: #2980b9;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+.search-clear:hover {
+    color: #ef4444;
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
-.filter-btn.active {
-    background-color: #e67e22;
-    box-shadow: 0 0 0 2px #f39c12;
+#search-input:not(:placeholder-shown)+.search-clear {
+    display: flex;
 }
 
-/* ===== ФИЛЬТР ПО ЖАНРАМ (ВЫПАДАЮЩИЙ СПИСОК) ===== */
+/* Средний ряд с разделителем */
+.row-middle {
+    justify-content: flex-start;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 15px;
+    margin-top: 5px;
+}
+
+.sort-group {
+    display: flex;
+    gap: 5px;
+}
+
+.sort-group .filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.sort-arrow {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.year-filter {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.year-input {
+    width: 90px;
+    padding: 10px 10px;
+    border: 2px solid #3498db;
+    border-radius: 30px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: white;
+    color: #1e293b;
+}
+
+.year-input:focus {
+    border-color: #9b59b6;
+    box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
+}
+
+/* Нижний ряд */
+.row-bottom {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 15px;
+}
+
 .genre-filter {
     position: relative;
     display: inline-block;
@@ -198,6 +344,51 @@ body {
     background-color: #e2e8f0;
 }
 
+/* ===== КНОПКИ (ОБЩИЕ) ===== */
+.filter-btn {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: 2px solid transparent;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    line-height: 1.2;
+}
+
+.filter-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.filter-btn.active {
+    background-color: #e67e22;
+    box-shadow: 0 0 0 2px #f39c12;
+}
+
+.reset-btn {
+    background-color: #94a3b8;
+}
+
+.reset-btn:hover {
+    background-color: #64748b;
+}
+
+.apply-btn {
+    background-color: #22c55e;
+}
+
+.apply-btn:hover {
+    background-color: #16a34a;
+}
+
 /* ===== СЕТКА ФИЛЬМОВ НА ГЛАВНОЙ ===== */
 .films-grid {
     display: grid;
@@ -259,6 +450,11 @@ body {
     justify-content: center;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+.poster-placeholder i {
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .film-info {
@@ -427,7 +623,6 @@ body {
     color: #1e293b;
 }
 
-/* Сетка ползунков */
 .rating-scales {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -435,7 +630,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* Карточка ползунка */
 .scale-item {
     border: 2px solid;
     border-radius: 16px;
@@ -450,19 +644,16 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Синяя тема для базовых шкал */
 .scale-base {
     border-color: #3498db;
     background-color: rgba(52, 152, 219, 0.08);
 }
 
-/* Лиловая тема для субъективной шкалы */
 .scale-subj {
     border-color: #9b59b6;
     background-color: rgba(155, 89, 182, 0.08);
 }
 
-/* Верхняя часть: название и значение */
 .scale-header {
     display: flex;
     justify-content: space-between;
@@ -484,7 +675,6 @@ body {
     border: 1px solid #e2e8f0;
 }
 
-/* Стилизация ползунка */
 .scale-item input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
@@ -527,17 +717,13 @@ body {
     border-radius: 10px;
 }
 
-/* Итоговая оценка */
 .total-rating {
     text-align: center;
     font-size: 1.5rem;
     padding: 15px;
     background-color: #e2e8f0;
-    /* чуть темнее, под цвет карточек */
     border: 2px solid #94a3b8;
-    /* серая рамка */
     border-radius: 16px;
-    /* чтобы совпадало с карточками */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -552,13 +738,10 @@ body {
 .score-badge {
     display: inline-block;
     padding: 6px 16px;
-    /* уменьшили вертикальный и горизонтальный отступы */
     border-radius: 16px;
     font-size: 1.6rem;
-    /* чуть уменьшили шрифт */
     font-weight: bold;
     min-width: 70px;
-    /* чтобы ячейка не схлопывалась при малых числах */
     text-align: center;
     color: #1e293b;
     border: 3px solid transparent;
@@ -576,7 +759,240 @@ body {
     font-size: 0.9rem;
 }
 
-/* ===== АДАПТИВНОСТЬ ===== */
+/* ===== ПЛЕЙЛИСТ ===== */
+.music-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.music-container h2 {
+    text-align: center;
+    color: #1e293b;
+    margin-bottom: 20px;
+}
+
+.music-container iframe {
+    border-radius: 12px;
+    display: block;
+}
+
+.music-footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #64748b;
+}
+
+/* ===== КОЛЕСО ФОРТУНЫ ===== */
+.wheel-container {
+    display: flex;
+    gap: 30px;
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.wheel-display {
+    flex: 2;
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.wheel-display h2 {
+    margin-bottom: 20px;
+    color: #1e293b;
+}
+
+.wheel-preview {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+#wheel-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #1e293b;
+}
+
+.wheel-poster {
+    width: 200px;
+    height: 300px;
+    background-color: #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wheel-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.spin-btn {
+    font-size: 1.2rem;
+    padding: 12px 30px;
+}
+
+/* Панель исключённых */
+.excluded-panel {
+    flex: 1;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.excluded-panel h3 {
+    margin-bottom: 15px;
+    color: #1e293b;
+    text-align: center;
+}
+
+.excluded-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+.excluded-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.excluded-item:hover {
+    background-color: #e2e8f0;
+}
+
+.excluded-title {
+    font-size: 0.95rem;
+    color: #334155;
+}
+
+.return-icon {
+    color: #3498db;
+    transition: color 0.2s;
+}
+
+.return-icon:hover {
+    color: #ef4444;
+}
+
+.empty-excluded {
+    text-align: center;
+    color: #94a3b8;
+    font-style: italic;
+    padding: 20px 0;
+}
+
+.excluded-info {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* Фильтр длительности */
+.duration-filter {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.wheel-left {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.available-films {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.available-films h3 {
+    margin-bottom: 15px;
+    color: #1e293b;
+    font-size: 1.2rem;
+}
+
+.exclude-btn {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 5px;
+    transition: transform 0.2s, color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.exclude-btn:hover {
+    transform: scale(1.1);
+    color: #dc2626;
+}
+
+.duration-input {
+    width: 110px;
+    padding-right: 25px;
+    /* чтобы текст не залезал под стрелки */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Адаптивность для колеса (добавим позже) */
+@media (max-width: 768px) {
+    .wheel-container {
+        flex-direction: column;
+    }
+}
+
+
+/* ===== АДАПТИВНОСТЬ (ВРЕМЕННО, БУДЕТ ДОРАБОТАНО) ===== */
 @media (max-width: 768px) {
     .film-detail-card {
         flex-direction: column;
@@ -594,12 +1010,7 @@ body {
         font-size: 2rem;
     }
 
-    .filters {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        justify-content: flex-start;
-        padding-bottom: 5px;
-    }
+
 
     .films-grid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -620,10 +1031,8 @@ body {
         font-size: 1.1rem;
     }
 
-    /* Оценки на мобильных */
     .rating-scales {
         grid-template-columns: 1fr;
-        /* одна колонка */
     }
 
     .scale-header {
