@@ -7,3 +7,5 @@
 Пока разработка [сайта](https://samik-zhiza.github.io/smotrelki-apupenki/index.html) находится на начальном этапе разработки...
 
 Сейчас вы можете зайти в наш замечательный [ТГ-канал](https://t.me/+0C_SL_kT9ZRmMDNi), а также можете загулянуть в нашу крутую [таблицу смотрелок](https://docs.google.com/spreadsheets/d/1II8oVhzQg8K5d7uRVcaXowr1XGmIz-hGRj9lESmyExI/edit?gid=0#gid=0).
+
+# Текущий функционал сайта
