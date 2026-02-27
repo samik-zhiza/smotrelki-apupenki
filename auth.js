@@ -47,20 +47,24 @@ function updateUserInfo(user) {
   }
 
 // Вход через Google (с выбором popup для localhost, иначе redirect)
+// Вход через Google (всегда используем всплывающее окно)
 function signInWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    if (isLocal) {
-        firebase.auth().signInWithPopup(provider)
-            .then(result => console.log('Успешный вход через popup', result.user))
-            .catch(error => {
-                console.error('Ошибка входа через popup:', error);
-                alert('Не удалось войти. Возможно, браузер блокирует всплывающие окна.');
-            });
-    } else {
-        firebase.auth().signInWithRedirect(provider);
-    }
-}
+    firebase.auth().signInWithPopup(provider)
+      .then(result => {
+        console.log('Успешный вход через popup', result.user);
+      })
+      .catch(error => {
+        console.error('Ошибка входа через popup:', error);
+        if (error.code === 'auth/popup-blocked') {
+          alert('Вход не удался: браузер заблокировал всплывающее окно. Пожалуйста, разрешите всплывающие окна для этого сайта и попробуйте снова.');
+        } else if (error.code === 'auth/unauthorized-domain') {
+          alert('Домен не авторизован. Добавьте ' + window.location.hostname + ' в консоли Firebase (Authentication → Sign-in method → Authorized domains).');
+        } else {
+          alert('Ошибка входа: ' + error.message);
+        }
+      });
+  }
 
 // Выход
 function signOut() {
