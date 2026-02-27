@@ -10,15 +10,17 @@ function initAuth() {
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             currentUser = user;
+            window.currentUser = user;
             document.body.classList.add('user-logged-in');
             updateAuthButton(user);
-            updateUserInfo(user);               // <-- добавить
+            updateUserInfo(user);
             await loadUserData(user.uid);
         } else {
             currentUser = null;
+            window.currentUser = null;
             document.body.classList.remove('user-logged-in');
             updateAuthButton(null);
-            updateUserInfo(null);                // <-- добавить
+            updateUserInfo(null);
             clearUserData();
         }
     });
@@ -34,90 +36,100 @@ function updateAuthButton(user) {
     }
 }
 
-// Новая функция для отображения email
 function updateUserInfo(user) {
     const span = document.getElementById('user-email');
     if (!span) return;
     if (user && user.email) {
-      span.textContent = user.displayName || user.email; // сначала имя, если есть, иначе email
-      span.style.display = 'inline-flex'; // показываем
+        span.textContent = user.displayName || user.email;
+        span.style.display = 'inline-flex';
     } else {
-      span.style.display = 'none'; // скрываем
+        span.style.display = 'none';
     }
-  }
+}
 
-// Вход через Google (с выбором popup для localhost, иначе redirect)
-// Вход через Google (всегда используем всплывающее окно)
 function signInWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
     firebase.auth().signInWithPopup(provider)
-      .then(result => {
-        console.log('Успешный вход через popup', result.user);
-      })
-      .catch(error => {
-        console.error('Ошибка входа через popup:', error);
-        if (error.code === 'auth/popup-blocked') {
-          alert('Вход не удался: браузер заблокировал всплывающее окно. Пожалуйста, разрешите всплывающие окна для этого сайта и попробуйте снова.');
-        } else if (error.code === 'auth/unauthorized-domain') {
-          alert('Домен не авторизован. Добавьте ' + window.location.hostname + ' в консоли Firebase (Authentication → Sign-in method → Authorized domains).');
-        } else {
-          alert('Ошибка входа: ' + error.message);
-        }
-      });
-  }
+        .then(result => console.log('Успешный вход через popup', result.user))
+        .catch(error => {
+            console.error('Ошибка входа через popup:', error);
+            if (error.code === 'auth/popup-blocked') {
+                alert('Вход не удался: браузер заблокировал всплывающее окно. Пожалуйста, разрешите всплывающие окна для этого сайта и попробуйте снова.');
+            } else if (error.code === 'auth/unauthorized-domain') {
+                alert('Домен не авторизован. Добавьте ' + window.location.hostname + ' в консоли Firebase (Authentication → Sign-in method → Authorized domains).');
+            } else {
+                alert('Ошибка входа: ' + error.message);
+            }
+        });
+}
 
-// Выход
 function signOut() {
     firebase.auth().signOut();
 }
 
-// ---------- Работа с данными пользователя в Firebase ----------
-
-// Загружает данные пользователя (избранное, исключённые) и применяет их к глобальным переменным
 async function loadUserData(uid) {
     const userRef = firebase.database().ref(`users/${uid}`);
     const snapshot = await userRef.once('value');
     const userData = snapshot.val() || {};
 
-    // Устанавливаем глобальные переменные (будут доступны в shared.js)
     window.userFavorites = userData.favorites || [];
     window.userExcluded = new Set(userData.excluded || []);
 
-    // Обновляем глобальные переменные в shared.js (если они там определены)
     if (typeof excludedFilmIds !== 'undefined') {
         excludedFilmIds = window.userExcluded;
     }
-    // Для избранного будем использовать window.userFavorites в getFavorites()
 }
 
-// Сохраняет избранное в Firebase
 function saveFavoritesToFirebase(favoritesArray) {
-    if (!currentUser) return;
-    firebase.database().ref(`users/${currentUser.uid}/favorites`).set(favoritesArray);
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+    firebase.database().ref(`users/${user.uid}/favorites`).set(favoritesArray)
+        .then(() => console.log('✅ Избранное сохранено в Firebase'))
+        .catch(error => console.error('❌ Ошибка сохранения избранного в Firebase:', error));
     window.userFavorites = favoritesArray;
 }
 
-// Сохраняет исключённые фильмы в Firebase
 function saveExcludedToFirebase(excludedArray) {
-    if (!currentUser) return;
-    firebase.database().ref(`users/${currentUser.uid}/excluded`).set(excludedArray);
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+    firebase.database().ref(`users/${user.uid}/excluded`).set(excludedArray)
+        .then(() => console.log('✅ Исключённые сохранены в Firebase'))
+        .catch(error => console.error('❌ Ошибка сохранения исключённых в Firebase:', error));
     window.userExcluded = new Set(excludedArray);
 }
 
-// Сохраняет оценку фильма
 function saveRatingToFirebase(filmId, ratingData) {
-    if (!currentUser) return;
-    firebase.database().ref(`users/${currentUser.uid}/ratings/${filmId}`).set(ratingData);
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        console.warn('⚠️ saveRatingToFirebase: пользователь не авторизован');
+        return;
+    }
+    const path = `users/${user.uid}/ratings/${filmId}`;
+    console.log('💾 Сохранение в Firebase по пути:', path, ratingData);
+    firebase.database().ref(path).set(ratingData)
+        .then(() => console.log('✅ Оценка успешно сохранена в Firebase'))
+        .catch(error => console.error('❌ Ошибка сохранения оценки в Firebase:', error));
 }
 
-// Загружает оценку фильма (возвращает Promise с данными или null)
 async function loadRatingFromFirebase(filmId) {
-    if (!currentUser) return null;
-    const snapshot = await firebase.database().ref(`users/${currentUser.uid}/ratings/${filmId}`).once('value');
-    return snapshot.val();
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        console.log('📥 loadRatingFromFirebase: пользователь не авторизован');
+        return null;
+    }
+    const path = `users/${user.uid}/ratings/${filmId}`;
+    console.log('📥 Загрузка из Firebase по пути:', path);
+    try {
+        const snapshot = await firebase.database().ref(path).once('value');
+        const data = snapshot.val();
+        console.log('📦 Получены данные из Firebase:', data);
+        return data;
+    } catch (error) {
+        console.error('❌ Ошибка загрузки из Firebase:', error);
+        return null;
+    }
 }
 
-// Очистка глобальных пользовательских данных при выходе
 function clearUserData() {
     window.userFavorites = [];
     window.userExcluded = new Set();
@@ -126,7 +138,6 @@ function clearUserData() {
     }
 }
 
-// ---------- Обработчик клика по кнопке входа ----------
 document.addEventListener('click', (e) => {
     if (e.target.closest('#auth-button')) {
         if (currentUser) {
@@ -137,5 +148,4 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Инициализация после загрузки DOM
 document.addEventListener('DOMContentLoaded', initAuth);
