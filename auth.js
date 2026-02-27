@@ -2,6 +2,11 @@
 let currentUser = null;
 
 function initAuth() {
+  // Обработка редиректа (если возвращаемся после входа)
+  firebase.auth().getRedirectResult().catch(error => {
+    console.error('Ошибка при редиректе:', error);
+  });
+
   firebase.auth().onAuthStateChanged((user) => {
     if (user) {
       currentUser = user;
@@ -28,21 +33,18 @@ function updateAuthButton(user) {
 
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider)
-    .catch(error => console.error('Ошибка входа:', error));
+  firebase.auth().signInWithRedirect(provider);
 }
 
 function signOut() {
   firebase.auth().signOut();
 }
 
-// Загрузить данные пользователя из базы (пока заглушка)
 function loadUserData(uid) {
   console.log('Загрузка данных для пользователя', uid);
-  // Здесь будем подгружать оценки и избранное
+  // TODO: загружать оценки и избранное из Firebase
 }
 
-// Обработчик клика по кнопке входа/выхода
 document.addEventListener('click', (e) => {
   if (e.target.closest('#auth-button')) {
     if (currentUser) {
@@ -53,5 +55,4 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Инициализация после загрузки DOM
 document.addEventListener('DOMContentLoaded', initAuth);
