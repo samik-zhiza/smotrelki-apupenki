@@ -4,6 +4,9 @@ const TMDB_API_KEY = "c62338407764b89796db0ebc6d3af4ed";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 const TMDB_CACHE_KEY = 'tmdb_cache';
 
+let currentLoadRating = null;
+let currentFilmIdForReload = null;
+
 function getMovieDataFromCache(title, year) {
   const cache = JSON.parse(localStorage.getItem(TMDB_CACHE_KEY) || '{}');
   const cacheKey = `${title}_${year}`;
@@ -65,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// ---------- Запрос к TMDB ----------
 async function fetchMovieDataDirectly(title, year, originalTitle) {
   const PROXY = 'https://corsproxy.io/?';
   const searchQuery = originalTitle || title;
@@ -81,7 +83,6 @@ async function fetchMovieDataDirectly(title, year, originalTitle) {
       return null;
     }
 
-    // Выбираем фильм с точным годом, если возможно
     let movie = searchData.results[0];
     if (year) {
       const exactYearMatch = searchData.results.find(m => 
@@ -230,50 +231,8 @@ function initRatingSystem(filmId) {
     element.style.borderColor = pair.border;
   }
 
-  async function loadRating() {
-    if (window.currentUser) {
-      const saved = await loadRatingFromFirebase(filmId);
-      if (saved) {
-        scale1.value = saved.s1;
-        scale2.value = saved.s2;
-        scale3.value = saved.s3;
-        scale4.value = saved.s4;
-        scale5.value = saved.s5;
-        subj.value = saved.m;
-        updateTotal();
-      }
-    } else {
-      const saved = localStorage.getItem(`filmRating_${filmId}`);
-      if (saved) {
-        const data = JSON.parse(saved);
-        scale1.value = data.s1;
-        scale2.value = data.s2;
-        scale3.value = data.s3;
-        scale4.value = data.s4;
-        scale5.value = data.s5;
-        subj.value = data.m;
-        updateTotal();
-      }
-    }
-  }
-
-  function saveRating() {
-    const ratingData = {
-      s1: parseFloat(scale1.value),
-      s2: parseFloat(scale2.value),
-      s3: parseFloat(scale3.value),
-      s4: parseFloat(scale4.value),
-      s5: parseFloat(scale5.value),
-      m: parseFloat(subj.value)
-    };
-    if (window.currentUser) {
-      saveRatingToFirebase(filmId, ratingData);
-    } else {
-      localStorage.setItem(`filmRating_${filmId}`, JSON.stringify(ratingData));
-    }
-  }
-
-  function updateTotal() {
+  // Обновление UI без сохранения
+  function updateUI() {
     const s1 = parseFloat(scale1.value);
     const s2 = parseFloat(scale2.value);
     const s3 = parseFloat(scale3.value);
@@ -313,19 +272,92 @@ function initRatingSystem(filmId) {
     const roundedTotal = Math.round(total * 10) / 10;
     totalSpan.textContent = roundedTotal;
     setScoreColor(roundedTotal, totalSpan);
-
-    saveRating(); // сохраняем после каждого изменения
   }
 
-  scale1.addEventListener('input', updateTotal);
-  scale2.addEventListener('input', updateTotal);
-  scale3.addEventListener('input', updateTotal);
-  scale4.addEventListener('input', updateTotal);
-  scale5.addEventListener('input', updateTotal);
-  subj.addEventListener('input', updateTotal);
+  // Сохранение
+  function saveRating() {
+    const ratingData = {
+      s1: parseFloat(scale1.value),
+      s2: parseFloat(scale2.value),
+      s3: parseFloat(scale3.value),
+      s4: parseFloat(scale4.value),
+      s5: parseFloat(scale5.value),
+      m: parseFloat(subj.value)
+    };
+    const user = firebase.auth().currentUser;
+    if (user) {
+      saveRatingToFirebase(filmId, ratingData);
+      console.log('💾 Оценка сохранена в Firebase');
+    } else {
+      localStorage.setItem(`filmRating_${filmId}`, JSON.stringify(ratingData));
+      console.log('💾 Оценка сохранена в localStorage');
+    }
+  }
 
-  loadRating(); // загружаем при инициализации
+  // Загрузка с возможностью передать пользователя
+  async function loadRating(userFromEvent = null) {
+    const user = userFromEvent || firebase.auth().currentUser;
+    console.log('📥 loadRating, пользователь:', user?.uid);
+    if (user) {
+      const saved = await loadRatingFromFirebase(filmId);
+      console.log('📦 Данные из Firebase:', saved);
+      if (saved) {
+        scale1.value = saved.s1;
+        scale2.value = saved.s2;
+        scale3.value = saved.s3;
+        scale4.value = saved.s4;
+        scale5.value = saved.s5;
+        subj.value = saved.m;
+        updateUI();
+        console.log('✅ Оценка загружена и применена');
+      } else {
+        console.log('⚠️ Нет сохранённой оценки в Firebase');
+        // оставляем текущие значения (по умолчанию 5) и обновляем UI
+        updateUI();
+      }
+    } else {
+      const saved = localStorage.getItem(`filmRating_${filmId}`);
+      console.log('📦 Данные из localStorage:', saved);
+      if (saved) {
+        const data = JSON.parse(saved);
+        scale1.value = data.s1;
+        scale2.value = data.s2;
+        scale3.value = data.s3;
+        scale4.value = data.s4;
+        scale5.value = data.s5;
+        subj.value = data.m;
+        updateUI();
+      } else {
+        updateUI(); // дефолтные 5, итог 0
+      }
+    }
+  }
+
+  currentLoadRating = loadRating;
+  currentFilmIdForReload = filmId;
+
+  // Обработчики движения ползунков – сохраняем при каждом изменении
+  scale1.addEventListener('input', () => { updateUI(); saveRating(); });
+  scale2.addEventListener('input', () => { updateUI(); saveRating(); });
+  scale3.addEventListener('input', () => { updateUI(); saveRating(); });
+  scale4.addEventListener('input', () => { updateUI(); saveRating(); });
+  scale5.addEventListener('input', () => { updateUI(); saveRating(); });
+  subj.addEventListener('input', () => { updateUI(); saveRating(); });
+
+  // Первоначальная загрузка
+  loadRating();
 }
+
+// Слушатель изменения аутентификации – передаём пользователя в loadRating
+firebase.auth().onAuthStateChanged((user) => {
+  console.log('🔥 onAuthStateChanged в film.js, пользователь:', user?.uid);
+  if (currentLoadRating) {
+    console.log('🔄 Вызываем currentLoadRating с пользователем');
+    currentLoadRating(user);
+  } else {
+    console.log('⚠️ currentLoadRating ещё не определена');
+  }
+});
 
 function escapeHtml(unsafe) {
   if (!unsafe) return '';
