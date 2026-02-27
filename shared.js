@@ -109,7 +109,19 @@ async function getMovieDataFromTMDB(film) {
             return null;
         }
 
-        const movie = searchData.results[0];
+        let movie = searchData.results[0];
+        if (year) {
+            const exactYearMatch = searchData.results.find(m => 
+                m.release_date && m.release_date.startsWith(String(year))
+            );
+            if (exactYearMatch) {
+                movie = exactYearMatch;
+                console.log(`✅ Найден фильм с точным годом ${year}: ${movie.title}`);
+            } else {
+                console.warn(`⚠️ Не найден фильм с годом ${year}, берём первый результат: ${movie.title} (${movie.release_date})`);
+            }
+        }
+
         const genresMap = await getGenres();
         const genreNames = movie.genre_ids.map(id => genresMap[id] || '').filter(g => g);
 
@@ -131,7 +143,7 @@ async function getMovieDataFromTMDB(film) {
             year: movie.release_date ? movie.release_date.split('-')[0] : year,
             director: director,
             duration: detailData.runtime ? `${Math.floor(detailData.runtime / 60)} ч ${detailData.runtime % 60} мин` : '',
-            durationMinutes: detailData.runtime || null, // для фильтра по длительности
+            durationMinutes: detailData.runtime || null,
         };
 
         cache[cacheKey] = { data: result, timestamp: Date.now() };
@@ -330,4 +342,5 @@ function slugify(text) {
 
 // ---------- Экспорт в глобальную область (для работы в старом стиле) ----------
 // Так как мы не используем модули, все функции и переменные будут глобальными.
+
 // Просто объявляем их как есть.
