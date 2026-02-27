@@ -16,7 +16,8 @@
             <a href="index.html">Главная</a>
             <a href="music.html">Плейлист</a>
             <a href="wheel.html" class="active">Колесо</a>
-            <button id="auth-button" class="filter-btn" style="margin-left: auto;">Войти</button>
+            <span id="user-email" style="color: white; margin-right: 10px;"></span>
+            <button id="auth-button" class="filter-btn">Войти</button>
         </nav>
     </header>
 
@@ -103,6 +104,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyCJ1zwkcRLh52PCgJKy0gs5h5AcX2ymN40",
             authDomain: "smotrelki-apupenki.firebaseapp.com",
+            databaseURL: "https://smotrelki-apupenki-default-rtdb.firebaseio.com",
             projectId: "smotrelki-apupenki",
             storageBucket: "smotrelki-apupenki.firebasestorage.app",
             messagingSenderId: "818647276094",
@@ -111,8 +113,8 @@
         firebase.initializeApp(firebaseConfig);
     </script>
 
-    <script src="shared.js"></script>
     <script src="auth.js"></script>
+    <script src="shared.js"></script>
     <script src="wheel.js"></script>
 </body>
 
