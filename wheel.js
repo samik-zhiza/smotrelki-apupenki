@@ -1,7 +1,5 @@
 // wheel.js
 
-const EXCLUDED_STORAGE_KEY = 'excludedFilmIds';
-
 // Загружаем исключённые фильмы
 function loadExcluded() {
     const stored = localStorage.getItem(EXCLUDED_STORAGE_KEY);
