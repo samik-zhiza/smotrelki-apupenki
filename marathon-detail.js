@@ -1,8 +1,8 @@
 // marathon-detail.js
+// Использует глобальный массив allFilms из shared.js
 
 let marathonId = null;
 let marathonData = null;
-let allFilmsFromJSON = [];
 
 // ---------- Получить id из URL ----------
 const params = new URLSearchParams(window.location.search);
@@ -11,25 +11,6 @@ if (!marathonId) {
   document.querySelector(".marathon-detail").innerHTML =
     '<p style="color:red;">Марафон не найден</p>';
   throw new Error("No marathon id");
-}
-
-// ---------- Загрузить список фильмов из films.json ----------
-async function loadFilmsJSON() {
-  if (allFilmsFromJSON.length) return allFilmsFromJSON;
-  try {
-    const resp = await fetch("films.json");
-    const data = await resp.json();
-    allFilmsFromJSON = data;
-    // Для удобства создаём карту по id
-    window.filmsMap = {};
-    data.forEach((f) => {
-      window.filmsMap[f.id] = f;
-    });
-    return data;
-  } catch (e) {
-    console.error("Ошибка загрузки films.json:", e);
-    return [];
-  }
 }
 
 // ---------- Загрузить данные марафона и отрисовать ----------
@@ -52,7 +33,6 @@ async function loadMarathon() {
 
 // ---------- Отрисовка марафона ----------
 function renderMarathon(data) {
-  // Обложка
   const coverContainer = document.querySelector(".marathon-cover");
   if (coverContainer) {
     if (data.coverUrl) {
@@ -62,11 +42,9 @@ function renderMarathon(data) {
     }
   }
 
-  // Заголовок и описание
   document.getElementById("marathon-title").textContent = data.name;
   document.getElementById("marathon-desc").textContent = data.description || "";
 
-  // Фильмы
   const container = document.getElementById("marathon-films");
   const filmIds = Object.keys(data.films || {});
   if (filmIds.length === 0) {
@@ -83,11 +61,8 @@ function renderMarathon(data) {
   let html = "";
   filmIds.forEach((filmId) => {
     const filmData = data.films[filmId];
-    const filmInfo = window.filmsMap[filmId];
-    if (!filmInfo) {
-      // Если фильм не найден в базе – пропускаем или показываем заглушку
-      return;
-    }
+    const filmInfo = allFilms ? allFilms.find((f) => f.id == filmId) : null;
+    if (!filmInfo) return;
 
     const isWatched =
       user && filmData.watchedBy && filmData.watchedBy[user.uid] === true;
@@ -119,25 +94,22 @@ function renderMarathon(data) {
 
   container.innerHTML = html;
 
-  // Прогресс
   const progress = total > 0 ? Math.round((watchedCount / total) * 100) : 0;
   document.getElementById("marathon-progress").textContent = progress + "%";
 
-  // Обработчики на кнопки отметки просмотра
   document.querySelectorAll(".watched-btn").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       const filmId = Number(btn.dataset.filmId);
       try {
         await toggleWatched(marathonId, filmId);
-        await loadMarathon(); // перезагрузить данные
+        await loadMarathon();
       } catch (err) {
         alert("Ошибка: " + err.message);
       }
     });
   });
 
-  // Обработчики на кнопки удаления фильма
   document.querySelectorAll(".remove-film-btn").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
@@ -153,7 +125,7 @@ function renderMarathon(data) {
   });
 }
 
-// ---------- Автокомплит при поиске фильмов (для добавления) ----------
+// ---------- Автокомплит ----------
 const filmSearchInput = document.getElementById("film-search");
 const suggestionsContainer = document.getElementById("marathon-suggestions");
 
@@ -163,9 +135,14 @@ filmSearchInput.addEventListener("input", function () {
     suggestionsContainer.style.display = "none";
     return;
   }
-  // Фильмы уже есть в марафоне
+  if (!allFilms || allFilms.length === 0) {
+    suggestionsContainer.innerHTML =
+      '<div style="padding:10px; color:#94a3b8;">Загрузка фильмов...</div>';
+    suggestionsContainer.style.display = "block";
+    return;
+  }
   const existingIds = Object.keys(marathonData.films || {}).map(Number);
-  const matches = allFilmsFromJSON.filter(
+  const matches = allFilms.filter(
     (f) => f.title.toLowerCase().includes(query) && !existingIds.includes(f.id),
   );
   if (matches.length === 0) {
@@ -194,7 +171,7 @@ filmSearchInput.addEventListener("input", function () {
     .forEach((el) => {
       el.addEventListener("click", function () {
         const id = Number(this.dataset.id);
-        const film = allFilmsFromJSON.find((f) => f.id === id);
+        const film = allFilms.find((f) => f.id === id);
         if (film && !existingIds.includes(id)) {
           addFilmToMarathon(marathonId, id)
             .then(() => {
@@ -208,14 +185,12 @@ filmSearchInput.addEventListener("input", function () {
     });
 });
 
-// Скрывать подсказки при потере фокуса
 filmSearchInput.addEventListener("blur", function () {
   setTimeout(() => {
     suggestionsContainer.style.display = "none";
   }, 200);
 });
 
-// Enter в поле поиска – выбрать первый вариант
 filmSearchInput.addEventListener("keypress", function (e) {
   if (e.key === "Enter") {
     const firstSuggestion = document.querySelector(
@@ -227,7 +202,6 @@ filmSearchInput.addEventListener("keypress", function (e) {
   }
 });
 
-// Кнопка "Добавить" – если есть подсказки, кликаем по первой, иначе ищем по тексту
 document.getElementById("add-film-btn").addEventListener("click", function () {
   const firstSuggestion = document.querySelector(
     "#marathon-suggestions .suggestion-item",
@@ -236,10 +210,13 @@ document.getElementById("add-film-btn").addEventListener("click", function () {
     firstSuggestion.click();
     return;
   }
-  // Если подсказок нет, ищем по тексту (старый вариант)
   const query = filmSearchInput.value.trim();
   if (!query) return alert("Введите название");
-  const found = allFilmsFromJSON.find((f) =>
+  if (!allFilms || allFilms.length === 0) {
+    alert("Фильмы ещё загружаются, подождите");
+    return;
+  }
+  const found = allFilms.find((f) =>
     f.title.toLowerCase().includes(query.toLowerCase()),
   );
   if (!found) {
@@ -274,16 +251,34 @@ document
   });
 
 // ---------- Инициализация ----------
-async function init() {
-  await loadFilmsJSON();
-  await loadMarathon();
-  // Подписка на обновления в реальном времени
-  firebase
-    .database()
-    .ref(`marathons/${marathonId}`)
-    .on("value", () => {
+function init() {
+  // Если фильмы уже загружены – сразу запускаем
+  if (allFilms && allFilms.length > 0) {
+    loadMarathon();
+    firebase
+      .database()
+      .ref(`marathons/${marathonId}`)
+      .on("value", () => {
+        loadMarathon();
+      });
+  } else {
+    // Ждём события загрузки
+    window.onFilmsLoaded = function () {
       loadMarathon();
-    });
+      firebase
+        .database()
+        .ref(`marathons/${marathonId}`)
+        .on("value", () => {
+          loadMarathon();
+        });
+      window.onFilmsLoaded = null;
+    };
+  }
 }
 
 init();
+
+// Загружаем фильмы, потом инициализируем марафон
+fetchAndSetFilms().then(() => {
+  init(); // init теперь будет вызываться после загрузки фильмов
+});

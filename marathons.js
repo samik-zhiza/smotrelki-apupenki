@@ -1,26 +1,62 @@
 // marathons.js
+// Использует глобальный массив allFilms из shared.js
 
 // ---------- Глобальные переменные ----------
 const marathonsList = document.getElementById("marathons-list");
 const createBtn = document.getElementById("create-marathon-btn");
 const modal = document.getElementById("create-modal");
 
-let selectedFilms = []; // выбранные фильмы при создании
-let allFilmsFromJSON = []; // загруженный список фильмов из films.json
+// ---------- Загрузка фильмов ----------
+async function fetchAndSetFilms() {
+  // Если фильмы уже загружены – просто сообщаем об этом
+  if (allFilms && allFilms.length > 0) {
+    if (typeof window.onFilmsLoaded === "function") window.onFilmsLoaded();
+    return;
+  }
 
-// ---------- Загрузка списка фильмов из JSON ----------
-async function loadFilmsJSON() {
-  if (allFilmsFromJSON.length) return allFilmsFromJSON;
   try {
-    const resp = await fetch("films.json");
-    const data = await resp.json();
-    allFilmsFromJSON = data;
-    return data;
-  } catch (e) {
-    console.error("Ошибка загрузки films.json:", e);
-    return [];
+    const response = await fetch("films.json");
+    if (!response.ok) throw new Error("Ошибка загрузки films.json");
+    const films = await response.json();
+
+    // Обогащаем данными TMDB (как на главной)
+    const enrichedPromises = films.map(async (film) => {
+      const tmdbData = await getMovieDataFromTMDB(film);
+      if (tmdbData) {
+        return {
+          ...film,
+          poster: tmdbData.poster || film.poster,
+          genres:
+            film.genres && film.genres.length > 0
+              ? film.genres
+              : tmdbData.genres.length
+                ? tmdbData.genres
+                : film.genres,
+          rating: tmdbData.rating || film.rating,
+          description: tmdbData.description || film.description || "",
+          director: film.director || tmdbData.director || "",
+          duration: tmdbData.duration || film.duration || "—",
+          durationMinutes: tmdbData.durationMinutes || null,
+        };
+      } else {
+        return film;
+      }
+    });
+
+    const enrichedFilms = await Promise.all(enrichedPromises);
+    allFilms = enrichedFilms;
+    filteredFilms = [...allFilms];
+
+    // Оповещаем, что фильмы загружены
+    if (typeof window.onFilmsLoaded === "function") {
+      window.onFilmsLoaded();
+    }
+  } catch (error) {
+    console.error("Ошибка загрузки фильмов на странице марафонов:", error);
   }
 }
+
+let selectedFilms = [];
 
 // ---------- Отображение выбранных фильмов ----------
 function renderSelectedFilms() {
@@ -41,7 +77,6 @@ function renderSelectedFilms() {
   `,
     )
     .join("");
-  // Обработчики удаления из выбранных
   document.querySelectorAll(".remove-selected").forEach((el) => {
     el.addEventListener("click", (e) => {
       const id = Number(el.dataset.id);
@@ -82,15 +117,8 @@ async function loadMarathons() {
   }
 }
 
-// ---------- Показать модальное окно ----------
-createBtn.addEventListener("click", async () => {
-  if (!firebase.auth().currentUser) {
-    alert("Войдите в аккаунт, чтобы создать марафон");
-    return;
-  }
-  await loadFilmsJSON(); // подгрузить фильмы
-  modal.style.display = "flex";
-  // Очищаем форму
+// ---------- Функция показа формы создания ----------
+function showCreateForm() {
   document.getElementById("marathon-name").value = "";
   document.getElementById("marathon-cover").value = "";
   document.getElementById("marathon-desc").value = "";
@@ -99,17 +127,53 @@ createBtn.addEventListener("click", async () => {
   selectedFilms = [];
   renderSelectedFilms();
   document.getElementById("marathon-film-search").value = "";
-  // Скрываем подсказки
   const suggestions = document.getElementById("suggestions-list");
   if (suggestions) suggestions.style.display = "none";
-});
+  document.querySelector("#create-modal h3").textContent =
+    "Создать киномарафон";
+  document.querySelector("#create-modal .filter-btn#modal-submit").disabled =
+    false;
+  document.querySelector(
+    "#create-modal .filter-btn#modal-submit",
+  ).style.opacity = "1";
+}
+
+// ---------- Показать модальное окно (с проверкой загрузки) ----------
+function openCreateModal() {
+  if (!firebase.auth().currentUser) {
+    alert("Войдите в аккаунт, чтобы создать марафон");
+    return;
+  }
+  // Если фильмы ещё не загружены – показываем состояние загрузки
+  if (!allFilms || allFilms.length === 0) {
+    modal.style.display = "flex";
+    document.querySelector("#create-modal h3").textContent =
+      "Загрузка фильмов...";
+    document.querySelector("#create-modal .filter-btn#modal-submit").disabled =
+      true;
+    document.querySelector(
+      "#create-modal .filter-btn#modal-submit",
+    ).style.opacity = "0.5";
+    // Ждём события загрузки
+    window.onFilmsLoaded = function () {
+      showCreateForm();
+      window.onFilmsLoaded = null; // чтобы не сработало повторно
+    };
+    return;
+  }
+  // Если всё загружено – сразу показываем форму
+  modal.style.display = "flex";
+  showCreateForm();
+}
+
+createBtn.addEventListener("click", openCreateModal);
 
 // ---------- Закрыть модальное окно ----------
 document.getElementById("modal-cancel").addEventListener("click", () => {
   modal.style.display = "none";
 });
 
-// ---------- Автокомплит при поиске фильмов ----------
+// ---------- Автокомплит ----------
 const searchInput = document.getElementById("marathon-film-search");
 const suggestionsContainer = document.getElementById("suggestions-list");
 
@@ -119,7 +183,13 @@ searchInput.addEventListener("input", function () {
     suggestionsContainer.style.display = "none";
     return;
   }
-  const matches = allFilmsFromJSON.filter(
+  if (!allFilms || allFilms.length === 0) {
+    suggestionsContainer.innerHTML =
+      '<div style="padding:10px; color:#94a3b8;">Загрузка фильмов...</div>';
+    suggestionsContainer.style.display = "block";
+    return;
+  }
+  const matches = allFilms.filter(
     (f) =>
       f.title.toLowerCase().includes(query) &&
       !selectedFilms.some((s) => s.id === f.id),
@@ -145,11 +215,10 @@ searchInput.addEventListener("input", function () {
     .join("");
   suggestionsContainer.style.display = "block";
 
-  // Навешиваем обработчики на каждый вариант
   document.querySelectorAll(".suggestion-item").forEach((el) => {
     el.addEventListener("click", function () {
       const id = Number(this.dataset.id);
-      const film = allFilmsFromJSON.find((f) => f.id === id);
+      const film = allFilms.find((f) => f.id === id);
       if (film && !selectedFilms.some((s) => s.id === id)) {
         selectedFilms.push({ id: film.id, title: film.title, year: film.year });
         renderSelectedFilms();
@@ -160,14 +229,12 @@ searchInput.addEventListener("input", function () {
   });
 });
 
-// Скрывать подсказки при потере фокуса (с задержкой)
 searchInput.addEventListener("blur", function () {
   setTimeout(() => {
     suggestionsContainer.style.display = "none";
   }, 200);
 });
 
-// Enter в поле поиска – выбрать первый вариант
 searchInput.addEventListener("keypress", function (e) {
   if (e.key === "Enter") {
     const firstSuggestion = document.querySelector(".suggestion-item");
@@ -177,7 +244,6 @@ searchInput.addEventListener("keypress", function (e) {
   }
 });
 
-// Кнопка "+" – очищает поле и скрывает подсказки (автокомплит уже сам работает)
 document
   .getElementById("marathon-add-film-btn")
   .addEventListener("click", function () {
@@ -185,7 +251,6 @@ document
     suggestionsContainer.style.display = "none";
   });
 
-// Закрытие подсказок при клике вне поля
 document.addEventListener("click", function (e) {
   if (
     !e.target.closest("#marathon-film-search") &&
@@ -206,27 +271,24 @@ document.getElementById("modal-submit").addEventListener("click", async () => {
   const canMark = document.getElementById("mark-all").checked;
 
   try {
-    // 1. Создаём марафон
     const id = await createMarathon(name, desc, isEditable, canMark, coverUrl);
-    // 2. Добавляем выбранные фильмы
     for (const film of selectedFilms) {
       await addFilmToMarathon(id, film.id);
     }
     modal.style.display = "none";
-    // Очищаем форму
     document.getElementById("marathon-name").value = "";
     document.getElementById("marathon-cover").value = "";
     document.getElementById("marathon-desc").value = "";
     selectedFilms = [];
     renderSelectedFilms();
     alert("Марафон создан!");
-    loadMarathons(); // обновить список
+    loadMarathons();
   } catch (e) {
     alert("Ошибка: " + e.message);
   }
 });
 
-// ---------- Реальное время – обновление списка при изменениях в Firebase ----------
+// ---------- Реальное время – обновление списка ----------
 firebase
   .database()
   .ref("marathons")
@@ -235,4 +297,15 @@ firebase
   });
 
 // ---------- Загрузка списка марафонов при старте ----------
-loadMarathons();
+// Если фильмы уже загружены – сразу показываем, иначе ждём события
+if (allFilms && allFilms.length > 0) {
+  loadMarathons();
+} else {
+  window.onFilmsLoaded = function () {
+    loadMarathons();
+    window.onFilmsLoaded = null;
+  };
+}
+
+// Загружаем фильмы при старте
+fetchAndSetFilms();
