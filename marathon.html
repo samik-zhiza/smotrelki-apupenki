@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Марафон</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header class="header">
+      <h1>🍿 Апупенные смотрелки</h1>
+      <nav>
+        <a href="index.html">Главная</a>
+        <a href="music.html">Плейлист</a>
+        <a href="wheel.html">Колесо</a>
+        <a href="marathons.html">Марафоны</a>
+        <span id="user-email" style="color: white; margin-right: 10px"></span>
+        <button id="auth-button" class="filter-btn">Войти</button>
+      </nav>
+    </header>
+
+    <main>
+      <div
+        class="marathon-detail"
+        style="max-width: 1000px; margin: 30px auto; padding: 0 20px"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+          "
+        >
+          <h2 id="marathon-title">Название марафона</h2>
+          <div>
+            <span
+              id="marathon-progress"
+              style="
+                background: #e2e8f0;
+                padding: 5px 15px;
+                border-radius: 30px;
+                font-weight: bold;
+              "
+              >0%</span
+            >
+            <button
+              id="delete-marathon"
+              class="filter-btn"
+              style="background: #ef4444; margin-left: 10px"
+            >
+              Удалить
+            </button>
+          </div>
+        </div>
+        <p id="marathon-desc" style="color: #64748b">Описание</p>
+        <div style="margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap">
+          <input
+            type="text"
+            id="film-search"
+            placeholder="Поиск фильма для добавления..."
+            style="
+              flex: 1;
+              padding: 10px;
+              border: 2px solid #3498db;
+              border-radius: 30px;
+              min-width: 200px;
+            "
+          />
+          <button
+            id="add-film-btn"
+            class="filter-btn"
+            style="background: #22c55e"
+          >
+            <i class="fas fa-plus"></i> Добавить
+          </button>
+        </div>
+        <div
+          id="marathon-films"
+          class="films-grid"
+          style="
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            margin-top: 10px;
+          "
+        >
+          <!-- Фильмы будут здесь -->
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>Сделано с ❤️ для друзей</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database-compat.js"></script>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyCJ1zwkcRLh52PCgJKy0gs5h5AcX2ymN40",
+        authDomain: "smotrelki-apupenki.firebaseapp.com",
+        databaseURL: "https://smotrelki-apupenki-default-rtdb.firebaseio.com",
+        projectId: "smotrelki-apupenki",
+        storageBucket: "smotrelki-apupenki.firebasestorage.app",
+        messagingSenderId: "818647276094",
+        appId: "1:818647276094:web:510004f72df788c6e68f6f",
+      };
+      firebase.initializeApp(firebaseConfig);
+    </script>
+
+    <script src="auth.js"></script>
+    <script src="shared.js"></script>
+    <script src="marathon-detail.js"></script>
+  </body>
+</html>

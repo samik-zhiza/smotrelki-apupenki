@@ -4,15 +4,15 @@
 // ---------- Глобальные переменные состояния ----------
 let allFilms = [];
 let filteredFilms = [];
-let currentSortType = 'year';
-let sortDirection = 'asc';
+let currentSortType = "year";
+let sortDirection = "asc";
 let activeGenres = [];
 let showOnlyFavorites = false;
-let searchQuery = '';
-let yearFrom = '';
-let yearTo = '';
-let durationFilter = null;           // объект { min, max } в минутах, или null
-let excludedFilmIds = new Set();     // set id фильмов, которые не участвуют в колесе
+let searchQuery = "";
+let yearFrom = "";
+let yearTo = "";
+let durationFilter = null; // объект { min, max } в минутах, или null
+let excludedFilmIds = new Set(); // set id фильмов, которые не участвуют в колесе
 
 // Для избранного используем window.userFavorites, который обновляется из auth.js
 
@@ -22,11 +22,11 @@ const TMDB_API_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 
 // Ключи localStorage (используются только когда пользователь не авторизован)
-const TMDB_CACHE_KEY = 'tmdb_cache';
-const TMDB_GENRES_CACHE_KEY = 'tmdb_genres';
-const FAVORITES_STORAGE_KEY = 'filmFavorites';
-const FILTER_STATE_KEY = 'filmFilterState';
-const EXCLUDED_STORAGE_KEY = 'excludedFilmIds'; // для колеса
+const TMDB_CACHE_KEY = "tmdb_cache";
+const TMDB_GENRES_CACHE_KEY = "tmdb_genres";
+const FAVORITES_STORAGE_KEY = "filmFavorites";
+const FILTER_STATE_KEY = "filmFilterState";
+const EXCLUDED_STORAGE_KEY = "excludedFilmIds"; // для колеса
 
 // ---------- Сохранение состояния фильтров (всегда в localStorage) ----------
 function saveFilterState() {
@@ -47,15 +47,15 @@ function loadFilterState() {
   if (saved) {
     try {
       const state = JSON.parse(saved);
-      currentSortType = state.sortType || 'year';
-      sortDirection = state.sortDirection || 'asc';
+      currentSortType = state.sortType || "year";
+      sortDirection = state.sortDirection || "asc";
       activeGenres = state.activeGenres || [];
       showOnlyFavorites = state.showOnlyFavorites || false;
-      searchQuery = state.searchQuery || '';
-      yearFrom = state.yearFrom || '';
-      yearTo = state.yearTo || '';
+      searchQuery = state.searchQuery || "";
+      yearFrom = state.yearFrom || "";
+      yearTo = state.yearTo || "";
     } catch (e) {
-      console.warn('Не удалось загрузить состояние фильтров', e);
+      console.warn("Не удалось загрузить состояние фильтров", e);
     }
   }
 }
@@ -81,7 +81,7 @@ function saveFavorites(favorites) {
 function toggleFavorite(filmId) {
   let favorites = getFavorites();
   if (favorites.includes(filmId)) {
-    favorites = favorites.filter(id => id !== filmId);
+    favorites = favorites.filter((id) => id !== filmId);
   } else {
     favorites.push(filmId);
   }
@@ -112,23 +112,25 @@ function saveExcluded(excludedSet) {
 function applyFilters() {
   let filtered = allFilms;
 
-  if (searchQuery.trim() !== '') {
+  if (searchQuery.trim() !== "") {
     const query = searchQuery.toLowerCase().trim();
-    filtered = filtered.filter(film => film.title.toLowerCase().includes(query));
+    filtered = filtered.filter((film) =>
+      film.title.toLowerCase().includes(query),
+    );
   }
 
-  if (yearFrom !== '') {
+  if (yearFrom !== "") {
     const from = parseInt(yearFrom, 10);
-    if (!isNaN(from)) filtered = filtered.filter(film => film.year >= from);
+    if (!isNaN(from)) filtered = filtered.filter((film) => film.year >= from);
   }
-  if (yearTo !== '') {
+  if (yearTo !== "") {
     const to = parseInt(yearTo, 10);
-    if (!isNaN(to)) filtered = filtered.filter(film => film.year <= to);
+    if (!isNaN(to)) filtered = filtered.filter((film) => film.year <= to);
   }
 
   if (durationFilter) {
     const { min, max } = durationFilter;
-    filtered = filtered.filter(film => {
+    filtered = filtered.filter((film) => {
       const dur = film.durationMinutes;
       if (!dur) return false;
       return dur >= min && dur <= max;
@@ -136,14 +138,14 @@ function applyFilters() {
   }
 
   if (activeGenres.length > 0) {
-    filtered = filtered.filter(film =>
-      film.genres.some(genre => activeGenres.includes(genre))
+    filtered = filtered.filter((film) =>
+      film.genres.some((genre) => activeGenres.includes(genre)),
     );
   }
 
   if (showOnlyFavorites) {
     const favorites = getFavorites();
-    filtered = filtered.filter(film => favorites.includes(film.id));
+    filtered = filtered.filter((film) => favorites.includes(film.id));
   }
 
   return filtered;
@@ -151,19 +153,21 @@ function applyFilters() {
 
 function sortFilms(films) {
   const sorted = [...films];
-  if (currentSortType === 'year') {
-    sorted.sort((a, b) => sortDirection === 'asc' ? a.year - b.year : b.year - a.year);
-  } else if (currentSortType === 'title') {
+  if (currentSortType === "year") {
+    sorted.sort((a, b) =>
+      sortDirection === "asc" ? a.year - b.year : b.year - a.year,
+    );
+  } else if (currentSortType === "title") {
     sorted.sort((a, b) => {
-      const comparison = a.title.localeCompare(b.title, 'ru');
-      return sortDirection === 'asc' ? comparison : -comparison;
+      const comparison = a.title.localeCompare(b.title, "ru");
+      return sortDirection === "asc" ? comparison : -comparison;
     });
-  } else if (currentSortType === 'genre') {
+  } else if (currentSortType === "genre") {
     sorted.sort((a, b) => {
-      const genreA = a.genres[0] || '';
-      const genreB = b.genres[0] || '';
-      const comparison = genreA.localeCompare(genreB, 'ru');
-      return sortDirection === 'asc' ? comparison : -comparison;
+      const genreA = a.genres[0] || "";
+      const genreB = b.genres[0] || "";
+      const comparison = genreA.localeCompare(genreB, "ru");
+      return sortDirection === "asc" ? comparison : -comparison;
     });
   }
   return sorted;
@@ -185,15 +189,20 @@ async function getGenres() {
     }
   }
   try {
-    const resp = await fetch(`${TMDB_API_URL}/genre/movie/list?api_key=${TMDB_API_KEY}&language=ru-RU`);
-    if (!resp.ok) throw new Error('Ошибка загрузки жанров');
+    const resp = await fetch(
+      `${TMDB_API_URL}/genre/movie/list?api_key=${TMDB_API_KEY}&language=ru-RU`,
+    );
+    if (!resp.ok) throw new Error("Ошибка загрузки жанров");
     const data = await resp.json();
     const genresMap = {};
-    data.genres.forEach(g => genresMap[g.id] = g.name);
-    localStorage.setItem(TMDB_GENRES_CACHE_KEY, JSON.stringify({ genres: genresMap, timestamp: Date.now() }));
+    data.genres.forEach((g) => (genresMap[g.id] = g.name));
+    localStorage.setItem(
+      TMDB_GENRES_CACHE_KEY,
+      JSON.stringify({ genres: genresMap, timestamp: Date.now() }),
+    );
     return genresMap;
   } catch (error) {
-    console.error('Ошибка получения жанров:', error);
+    console.error("Ошибка получения жанров:", error);
     return {};
   }
 }
@@ -203,10 +212,13 @@ async function getMovieDataFromTMDB(film) {
   const year = film.year;
   const originalTitle = film.original_title || title;
 
-  const cache = JSON.parse(localStorage.getItem(TMDB_CACHE_KEY) || '{}');
+  const cache = JSON.parse(localStorage.getItem(TMDB_CACHE_KEY) || "{}");
   const cacheKey = `${title}_${year}`;
 
-  if (cache[cacheKey] && (Date.now() - cache[cacheKey].timestamp < 7 * 24 * 60 * 60 * 1000)) {
+  if (
+    cache[cacheKey] &&
+    Date.now() - cache[cacheKey].timestamp < 7 * 24 * 60 * 60 * 1000
+  ) {
     console.log(`✅ Из кеша: ${title}`);
     return cache[cacheKey].data;
   }
@@ -226,8 +238,8 @@ async function getMovieDataFromTMDB(film) {
     // Выбираем фильм с точным годом, если возможно
     let movie = searchData.results[0];
     if (year) {
-      const exactYearMatch = searchData.results.find(m => 
-        m.release_date && m.release_date.startsWith(String(year))
+      const exactYearMatch = searchData.results.find(
+        (m) => m.release_date && m.release_date.startsWith(String(year)),
       );
       if (exactYearMatch) {
         movie = exactYearMatch;
@@ -236,26 +248,37 @@ async function getMovieDataFromTMDB(film) {
     }
 
     const genresMap = await getGenres();
-    const genreNames = movie.genre_ids.map(id => genresMap[id] || '').filter(g => g);
+    const genreNames = movie.genre_ids
+      .map((id) => genresMap[id] || "")
+      .filter((g) => g);
 
-    const detailResp = await fetch(`${TMDB_API_URL}/movie/${movie.id}?api_key=${TMDB_API_KEY}&language=ru-RU&append_to_response=credits`);
-    if (!detailResp.ok) throw new Error(`Ошибка получения деталей: ${detailResp.status}`);
+    const detailResp = await fetch(
+      `${TMDB_API_URL}/movie/${movie.id}?api_key=${TMDB_API_KEY}&language=ru-RU&append_to_response=credits`,
+    );
+    if (!detailResp.ok)
+      throw new Error(`Ошибка получения деталей: ${detailResp.status}`);
     const detailData = await detailResp.json();
 
-    let director = '';
+    let director = "";
     if (detailData.credits && detailData.credits.crew) {
-      const directorObj = detailData.credits.crew.find(person => person.job === 'Director');
-      director = directorObj ? directorObj.name : '';
+      const directorObj = detailData.credits.crew.find(
+        (person) => person.job === "Director",
+      );
+      director = directorObj ? directorObj.name : "";
     }
 
     const result = {
-      poster: movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : '',
+      poster: movie.poster_path
+        ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}`
+        : "",
       genres: genreNames,
-      rating: movie.vote_average ? movie.vote_average.toFixed(1) : '',
-      description: movie.overview || '',
-      year: movie.release_date ? movie.release_date.split('-')[0] : year,
+      rating: movie.vote_average ? movie.vote_average.toFixed(1) : "",
+      description: movie.overview || "",
+      year: movie.release_date ? movie.release_date.split("-")[0] : year,
       director: director,
-      duration: detailData.runtime ? `${Math.floor(detailData.runtime / 60)} ч ${detailData.runtime % 60} мин` : '',
+      duration: detailData.runtime
+        ? `${Math.floor(detailData.runtime / 60)} ч ${detailData.runtime % 60} мин`
+        : "",
       durationMinutes: detailData.runtime || null,
     };
 
@@ -271,28 +294,30 @@ async function getMovieDataFromTMDB(film) {
 
 // ---------- Работа с жанрами (UI) ----------
 function populateGenreList() {
-  const genreListContainer = document.querySelector('.genre-list');
+  const genreListContainer = document.querySelector(".genre-list");
   if (!genreListContainer) return;
 
   const allGenres = new Set();
-  allFilms.forEach(film => {
-    film.genres.forEach(genre => allGenres.add(genre));
+  allFilms.forEach((film) => {
+    film.genres.forEach((genre) => allGenres.add(genre));
   });
-  const sortedGenres = Array.from(allGenres).sort((a, b) => a.localeCompare(b, 'ru'));
+  const sortedGenres = Array.from(allGenres).sort((a, b) =>
+    a.localeCompare(b, "ru"),
+  );
 
-  genreListContainer.innerHTML = '';
-  sortedGenres.forEach(genre => {
-    const genreItem = document.createElement('div');
-    genreItem.className = 'genre-item';
+  genreListContainer.innerHTML = "";
+  sortedGenres.forEach((genre) => {
+    const genreItem = document.createElement("div");
+    genreItem.className = "genre-item";
     genreItem.dataset.genre = genre;
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
     checkbox.value = genre;
     checkbox.id = `genre-${slugify(genre)}`;
-    checkbox.addEventListener('change', () => updateActiveGenres());
+    checkbox.addEventListener("change", () => updateActiveGenres());
 
-    const label = document.createElement('label');
+    const label = document.createElement("label");
     label.htmlFor = checkbox.id;
     label.textContent = genre;
 
@@ -303,17 +328,17 @@ function populateGenreList() {
 }
 
 function filterGenreList(query) {
-  const items = document.querySelectorAll('.genre-item');
+  const items = document.querySelectorAll(".genre-item");
   const lowerQuery = query.toLowerCase();
-  items.forEach(item => {
+  items.forEach((item) => {
     const genre = item.dataset.genre.toLowerCase();
-    item.style.display = genre.includes(lowerQuery) ? 'flex' : 'none';
+    item.style.display = genre.includes(lowerQuery) ? "flex" : "none";
   });
 }
 
 function updateActiveGenres() {
   activeGenres = [];
-  document.querySelectorAll('.genre-item input:checked').forEach(cb => {
+  document.querySelectorAll(".genre-item input:checked").forEach((cb) => {
     activeGenres.push(cb.value);
   });
   saveFilterState();
@@ -321,28 +346,136 @@ function updateActiveGenres() {
 }
 
 function clearGenreFilter() {
-  document.querySelectorAll('.genre-item input').forEach(cb => cb.checked = false);
+  document
+    .querySelectorAll(".genre-item input")
+    .forEach((cb) => (cb.checked = false));
   activeGenres = [];
   saveFilterState();
 }
 
 function syncGenreCheckboxes() {
-  document.querySelectorAll('.genre-item input').forEach(cb => {
+  document.querySelectorAll(".genre-item input").forEach((cb) => {
     cb.checked = activeGenres.includes(cb.value);
   });
 }
 
 // ---------- Вспомогательные функции ----------
 function escapeHtml(unsafe) {
-  if (!unsafe) return '';
+  if (!unsafe) return "";
   return unsafe
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function slugify(text) {
-  return text.toLowerCase().replace(/[^a-zа-яё0-9]/gi, '-');
+  return text.toLowerCase().replace(/[^a-zа-яё0-9]/gi, "-");
+}
+
+// ---------- МАРАФОНЫ ----------
+
+// Создать марафон
+async function createMarathon(
+  name,
+  description,
+  isEditableByAll,
+  canAnyoneMarkWatched,
+) {
+  if (!firebase.auth().currentUser) throw new Error("Необходимо войти");
+  const uid = firebase.auth().currentUser.uid;
+  const ref = firebase.database().ref("marathons").push();
+  await ref.set({
+    name: name.trim(),
+    description: description ? description.trim() : "",
+    createdBy: uid,
+    createdAt: Date.now(),
+    isEditableByAll: !!isEditableByAll,
+    canAnyoneMarkWatched: !!canAnyoneMarkWatched,
+    films: {},
+  });
+  return ref.key;
+}
+
+// Получить все марафоны
+async function getMarathons() {
+  const snapshot = await firebase.database().ref("marathons").once("value");
+  const data = snapshot.val() || {};
+  return Object.keys(data).map((id) => ({ id, ...data[id] }));
+}
+
+// Получить один марафон по id
+async function getMarathon(id) {
+  const snapshot = await firebase
+    .database()
+    .ref(`marathons/${id}`)
+    .once("value");
+  return snapshot.val();
+}
+
+// Добавить фильм в марафон
+async function addFilmToMarathon(marathonId, filmId) {
+  const user = firebase.auth().currentUser;
+  if (!user) throw new Error("Необходимо войти");
+  const marathon = await getMarathon(marathonId);
+  if (!marathon) throw new Error("Марафон не найден");
+  const canEdit = marathon.createdBy === user.uid || marathon.isEditableByAll;
+  if (!canEdit) throw new Error("Нет прав на добавление фильмов");
+
+  const ref = firebase
+    .database()
+    .ref(`marathons/${marathonId}/films/${filmId}`);
+  await ref.set({
+    addedBy: user.uid,
+    addedAt: Date.now(),
+    watchedBy: {},
+  });
+}
+
+// Удалить фильм из марафона
+async function removeFilmFromMarathon(marathonId, filmId) {
+  const user = firebase.auth().currentUser;
+  if (!user) throw new Error("Необходимо войти");
+  const marathon = await getMarathon(marathonId);
+  if (!marathon) throw new Error("Марафон не найден");
+  const canEdit = marathon.createdBy === user.uid || marathon.isEditableByAll;
+  if (!canEdit) throw new Error("Нет прав на удаление фильмов");
+  await firebase
+    .database()
+    .ref(`marathons/${marathonId}/films/${filmId}`)
+    .remove();
+}
+
+// Переключить отметку просмотра (добавить/удалить текущего пользователя)
+async function toggleWatched(marathonId, filmId) {
+  const user = firebase.auth().currentUser;
+  if (!user) throw new Error("Необходимо войти");
+  const marathon = await getMarathon(marathonId);
+  if (!marathon) throw new Error("Марафон не найден");
+  const canMark =
+    marathon.createdBy === user.uid || marathon.canAnyoneMarkWatched;
+  if (!canMark) throw new Error("Нет прав на отметку просмотра");
+
+  const ref = firebase
+    .database()
+    .ref(`marathons/${marathonId}/films/${filmId}/watchedBy/${user.uid}`);
+  const snapshot = await ref.once("value");
+  const isWatched = snapshot.val() === true;
+  if (isWatched) {
+    await ref.remove();
+  } else {
+    await ref.set(true);
+  }
+}
+
+// Удалить марафон (только создатель)
+async function deleteMarathon(marathonId) {
+  const user = firebase.auth().currentUser;
+  if (!user) throw new Error("Необходимо войти");
+  const marathon = await getMarathon(marathonId);
+  if (!marathon) throw new Error("Марафон не найден");
+  if (marathon.createdBy !== user.uid)
+    throw new Error("Только создатель может удалить марафон");
+  await firebase.database().ref(`marathons/${marathonId}`).remove();
 }

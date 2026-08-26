@@ -1,35 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>О фильме</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-</head>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
 
-<body>
+  <body>
     <header class="header">
-        <h1>🍿 Апупенные смотрелки</h1>
-        <nav>
-            <a href="index.html">Назад к списку</a>
-            <a href="music.html">Плейлист</a>
-            <a href="wheel.html">Колесо</a>
-            <span id="user-email" style="color: white; margin-right: 10px;"></span>
-            <button id="auth-button" class="filter-btn">Войти</button>
-        </nav>
+      <h1>🍿 Апупенные смотрелки</h1>
+      <nav>
+        <a href="index.html">Назад к списку</a>
+        <a href="music.html">Плейлист</a>
+        <a href="wheel.html">Колесо</a>
+        <a href="marathons.html">Марафоны</a>
+        <span id="user-email" style="color: white; margin-right: 10px"></span>
+        <button id="auth-button" class="filter-btn">Войти</button>
+      </nav>
     </header>
 
     <main>
-        <div class="film-detail" id="film-detail">
-            <!-- Здесь будет информация о фильме -->
-            <p>Загрузка...</p>
-        </div>
+      <div class="film-detail" id="film-detail">
+        <!-- Здесь будет информация о фильме -->
+        <p>Загрузка...</p>
+      </div>
     </main>
 
     <footer class="footer">
-        <p>Сделано с ❤️ для друзей</p>
+      <p>Сделано с ❤️ для друзей</p>
     </footer>
 
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
@@ -37,21 +40,19 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database-compat.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCJ1zwkcRLh52PCgJKy0gs5h5AcX2ymN40",
-            authDomain: "smotrelki-apupenki.firebaseapp.com",
-            databaseURL: "https://smotrelki-apupenki-default-rtdb.firebaseio.com",
-            projectId: "smotrelki-apupenki",
-            storageBucket: "smotrelki-apupenki.firebasestorage.app",
-            messagingSenderId: "818647276094",
-            appId: "1:818647276094:web:510004f72df788c6e68f6f"
-        };
-        firebase.initializeApp(firebaseConfig);
+      const firebaseConfig = {
+        apiKey: "AIzaSyCJ1zwkcRLh52PCgJKy0gs5h5AcX2ymN40",
+        authDomain: "smotrelki-apupenki.firebaseapp.com",
+        databaseURL: "https://smotrelki-apupenki-default-rtdb.firebaseio.com",
+        projectId: "smotrelki-apupenki",
+        storageBucket: "smotrelki-apupenki.firebasestorage.app",
+        messagingSenderId: "818647276094",
+        appId: "1:818647276094:web:510004f72df788c6e68f6f",
+      };
+      firebase.initializeApp(firebaseConfig);
     </script>
-
 
     <script src="auth.js"></script>
     <script src="film.js"></script>
-</body>
-
+  </body>
 </html>

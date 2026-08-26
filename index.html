@@ -1,81 +1,117 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Смотрелки-апупенки</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-</head>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
 
-<body>
+  <body>
     <header class="header">
-        <h1>🍿 Апупенные смотрелки</h1>
-        <nav>
-            <a href="index.html" class="active">Главная</a>
-            <a href="music.html">Плейлист</a>
-            <a href="wheel.html">Колесо</a>
-            <span id="user-email" style="color: white; margin-right: 10px;"></span>
-            <button id="auth-button" class="filter-btn">Войти</button>
-        </nav>
+      <h1>🍿 Апупенные смотрелки</h1>
+      <nav>
+        <a href="index.html" class="active">Главная</a>
+        <a href="music.html">Плейлист</a>
+        <a href="wheel.html">Колесо</a>
+        <a href="marathons.html">Марафоны</a>
+        <span id="user-email" style="color: white; margin-right: 10px"></span>
+        <button id="auth-button" class="filter-btn">Войти</button>
+      </nav>
     </header>
 
     <main>
-        <div class="filters">
-            <!-- Верхняя строка: поиск, избранное, сброс -->
-            <div class="filter-row row-top">
-                <div class="search-wrapper">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="search-input" placeholder="Поиск по названию...">
-                    <button class="search-clear" id="search-clear" aria-label="Очистить поиск">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
-                </div>
-                <button class="filter-btn" id="favorites-filter">
-                    <i class="far fa-heart" style="margin-right: 5px;"></i> Только избранное
-                </button>
-                <button class="filter-btn reset-btn" id="reset-filters">
-                    <i class="fas fa-undo-alt" style="margin-right: 5px;"></i> Сбросить всё
-                </button>
-            </div>
-
-            <!-- Средняя строка: сортировка + фильтр по годам -->
-            <div class="filter-row row-middle">
-                <div class="sort-group">
-                    <button class="filter-btn" data-sort="title">Название <span class="sort-arrow"
-                            data-sort="title">↑</span></button>
-                    <button class="filter-btn" data-sort="year">Год <span class="sort-arrow"
-                            data-sort="year">↑</span></button>
-                </div>
-                <div class="year-filter">
-                    <input type="number" id="year-from" class="year-input" placeholder="от" min="1900" max="2030">
-                    <input type="number" id="year-to" class="year-input" placeholder="до" min="1900" max="2030">
-                    <button class="filter-btn apply-btn" id="apply-year-filter"><i class="fas fa-check"></i> OK</button>
-                </div>
-            </div>
-
-            <!-- Нижняя строка: жанры -->
-            <div class="filter-row row-bottom">
-                <div class="genre-filter">
-                    <button class="filter-btn genre-filter-btn">Жанры <i class="fa-solid fa-angle-down"></i></button>
-                    <div class="genre-dropdown hidden">
-                        <input type="text" class="genre-search" placeholder="Поиск жанра...">
-                        <div class="genre-list">
-                            <!-- сюда будут добавляться чекбоксы -->
-                        </div>
-                        <button class="genre-clear filter-btn">Сбросить</button>
-                    </div>
-                </div>
-            </div>
+      <div class="filters">
+        <!-- Верхняя строка: поиск, избранное, сброс -->
+        <div class="filter-row row-top">
+          <div class="search-wrapper">
+            <i class="fas fa-search search-icon"></i>
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Поиск по названию..."
+            />
+            <button
+              class="search-clear"
+              id="search-clear"
+              aria-label="Очистить поиск"
+            >
+              <i class="fas fa-times-circle"></i>
+            </button>
+          </div>
+          <button class="filter-btn" id="favorites-filter">
+            <i class="far fa-heart" style="margin-right: 5px"></i> Только
+            избранное
+          </button>
+          <button class="filter-btn reset-btn" id="reset-filters">
+            <i class="fas fa-undo-alt" style="margin-right: 5px"></i> Сбросить
+            всё
+          </button>
         </div>
 
-        <div class="films-grid" id="films-container">
+        <!-- Средняя строка: сортировка + фильтр по годам -->
+        <div class="filter-row row-middle">
+          <div class="sort-group">
+            <button class="filter-btn" data-sort="title">
+              Название <span class="sort-arrow" data-sort="title">↑</span>
+            </button>
+            <button class="filter-btn" data-sort="year">
+              Год <span class="sort-arrow" data-sort="year">↑</span>
+            </button>
+          </div>
+          <div class="year-filter">
+            <input
+              type="number"
+              id="year-from"
+              class="year-input"
+              placeholder="от"
+              min="1900"
+              max="2030"
+            />
+            <input
+              type="number"
+              id="year-to"
+              class="year-input"
+              placeholder="до"
+              min="1900"
+              max="2030"
+            />
+            <button class="filter-btn apply-btn" id="apply-year-filter">
+              <i class="fas fa-check"></i> OK
+            </button>
+          </div>
         </div>
+
+        <!-- Нижняя строка: жанры -->
+        <div class="filter-row row-bottom">
+          <div class="genre-filter">
+            <button class="filter-btn genre-filter-btn">
+              Жанры <i class="fa-solid fa-angle-down"></i>
+            </button>
+            <div class="genre-dropdown hidden">
+              <input
+                type="text"
+                class="genre-search"
+                placeholder="Поиск жанра..."
+              />
+              <div class="genre-list">
+                <!-- сюда будут добавляться чекбоксы -->
+              </div>
+              <button class="genre-clear filter-btn">Сбросить</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="films-grid" id="films-container"></div>
     </main>
 
     <footer class="footer">
-        <p>Сделано с ❤️ для друзей</p>
+      <p>Сделано с ❤️ для друзей</p>
     </footer>
 
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
@@ -83,21 +119,20 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database-compat.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCJ1zwkcRLh52PCgJKy0gs5h5AcX2ymN40",
-            authDomain: "smotrelki-apupenki.firebaseapp.com",
-            databaseURL: "https://smotrelki-apupenki-default-rtdb.firebaseio.com",
-            projectId: "smotrelki-apupenki",
-            storageBucket: "smotrelki-apupenki.firebasestorage.app",
-            messagingSenderId: "818647276094",
-            appId: "1:818647276094:web:510004f72df788c6e68f6f"
-        };
-        firebase.initializeApp(firebaseConfig);
+      const firebaseConfig = {
+        apiKey: "AIzaSyCJ1zwkcRLh52PCgJKy0gs5h5AcX2ymN40",
+        authDomain: "smotrelki-apupenki.firebaseapp.com",
+        databaseURL: "https://smotrelki-apupenki-default-rtdb.firebaseio.com",
+        projectId: "smotrelki-apupenki",
+        storageBucket: "smotrelki-apupenki.firebasestorage.app",
+        messagingSenderId: "818647276094",
+        appId: "1:818647276094:web:510004f72df788c6e68f6f",
+      };
+      firebase.initializeApp(firebaseConfig);
     </script>
 
     <script src="auth.js"></script>
     <script src="shared.js"></script>
     <script src="script.js"></script>
-</body>
-
+  </body>
 </html>
