@@ -382,6 +382,7 @@ async function createMarathon(
   description,
   isEditableByAll,
   canAnyoneMarkWatched,
+  coverUrl,
 ) {
   if (!firebase.auth().currentUser) throw new Error("Необходимо войти");
   const uid = firebase.auth().currentUser.uid;
@@ -389,6 +390,7 @@ async function createMarathon(
   await ref.set({
     name: name.trim(),
     description: description ? description.trim() : "",
+    coverUrl: coverUrl ? coverUrl.trim() : "",
     createdBy: uid,
     createdAt: Date.now(),
     isEditableByAll: !!isEditableByAll,

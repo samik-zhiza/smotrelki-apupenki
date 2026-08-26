@@ -71,12 +71,15 @@
             background: white;
             padding: 30px;
             border-radius: 16px;
-            max-width: 500px;
-            width: 90%;
+            max-width: 600px;
+            width: 95%;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
           "
         >
           <h3>Создать киномарафон</h3>
+
           <input
             type="text"
             id="marathon-name"
@@ -90,6 +93,21 @@
               box-sizing: border-box;
             "
           />
+
+          <input
+            type="text"
+            id="marathon-cover"
+            placeholder="URL обложки (необязательно)"
+            style="
+              width: 100%;
+              padding: 10px;
+              margin: 10px 0;
+              border: 2px solid #3498db;
+              border-radius: 30px;
+              box-sizing: border-box;
+            "
+          />
+
           <textarea
             id="marathon-desc"
             placeholder="Описание (необязательно)"
@@ -103,6 +121,7 @@
               box-sizing: border-box;
             "
           ></textarea>
+
           <div style="margin: 10px 0">
             <label
               ><input type="checkbox" id="editable-all" checked /> Разрешить
@@ -115,6 +134,77 @@
               отмечать просмотры</label
             >
           </div>
+
+          <hr
+            style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0"
+          />
+
+          <div style="margin: 10px 0">
+            <p style="font-weight: 600; margin: 5px 0">
+              Добавить фильмы в марафон (опционально)
+            </p>
+            <div style="display: flex; gap: 5px; margin-bottom: 5px">
+              <input
+                type="text"
+                id="marathon-film-search"
+                placeholder="Поиск фильма..."
+                style="
+                  flex: 1;
+                  padding: 8px;
+                  border: 2px solid #3498db;
+                  border-radius: 30px;
+                "
+              />
+              <button
+                id="marathon-add-film-btn"
+                class="filter-btn"
+                style="background: #22c55e; padding: 8px 15px"
+              >
+                +
+              </button>
+            </div>
+            <!-- Блок подсказок (вставляется сюда) -->
+            <div
+              id="marathon-search-suggestions"
+              style="position: relative; width: 100%"
+            >
+              <div
+                id="suggestions-list"
+                style="
+                  position: absolute;
+                  top: 100%;
+                  left: 0;
+                  right: 0;
+                  background: white;
+                  border: 1px solid #e2e8f0;
+                  border-radius: 12px;
+                  max-height: 200px;
+                  overflow-y: auto;
+                  z-index: 100;
+                  display: none;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                "
+              >
+                <!-- сюда будут подставляться варианты -->
+              </div>
+            </div>
+            <div
+              id="marathon-selected-films"
+              style="
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                min-height: 30px;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 8px;
+                margin-top: 5px;
+              "
+            >
+              <!-- Выбранные фильмы будут здесь -->
+            </div>
+          </div>
+
           <div
             style="
               display: flex;

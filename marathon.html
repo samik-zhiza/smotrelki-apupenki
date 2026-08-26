@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Марафон</title>
+    <title>Киномарафон</title>
     <link rel="stylesheet" href="style.css" />
     <link
       rel="stylesheet"
@@ -28,6 +28,9 @@
         class="marathon-detail"
         style="max-width: 1000px; margin: 30px auto; padding: 0 20px"
       >
+        <!-- Контейнер для обложки -->
+        <div class="marathon-cover" style="margin-bottom: 20px"></div>
+
         <div
           style="
             display: flex;
@@ -59,27 +62,55 @@
           </div>
         </div>
         <p id="marathon-desc" style="color: #64748b">Описание</p>
-        <div style="margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap">
-          <input
-            type="text"
-            id="film-search"
-            placeholder="Поиск фильма для добавления..."
+
+        <!-- Блок добавления фильма с автокомплитом -->
+        <div
+          style="
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+          "
+        >
+          <div style="display: flex; gap: 10px; flex-wrap: wrap">
+            <input
+              type="text"
+              id="film-search"
+              placeholder="Поиск фильма..."
+              style="
+                flex: 1;
+                padding: 10px;
+                border: 2px solid #3498db;
+                border-radius: 30px;
+                min-width: 200px;
+              "
+            />
+            <button
+              id="add-film-btn"
+              class="filter-btn"
+              style="background: #22c55e"
+            >
+              <i class="fas fa-plus"></i> Добавить
+            </button>
+          </div>
+          <!-- Контейнер подсказок -->
+          <div
+            id="marathon-suggestions"
             style="
-              flex: 1;
-              padding: 10px;
-              border: 2px solid #3498db;
-              border-radius: 30px;
-              min-width: 200px;
+              display: none;
+              background: white;
+              border: 1px solid #e2e8f0;
+              border-radius: 12px;
+              max-height: 200px;
+              overflow-y: auto;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             "
-          />
-          <button
-            id="add-film-btn"
-            class="filter-btn"
-            style="background: #22c55e"
           >
-            <i class="fas fa-plus"></i> Добавить
-          </button>
+            <!-- сюда будут подставляться варианты -->
+          </div>
         </div>
+
+        <!-- Список фильмов марафона -->
         <div
           id="marathon-films"
           class="films-grid"
@@ -97,6 +128,7 @@
       <p>Сделано с ❤️ для друзей</p>
     </footer>
 
+    <!-- Firebase SDK и конфигурация -->
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database-compat.js"></script>
